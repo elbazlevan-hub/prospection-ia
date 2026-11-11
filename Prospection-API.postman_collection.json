@@ -6,7 +6,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:3000/api"
+      "value": "http://127.0.0.1:3000/api"
     },
     {
       "key": "offerId",
@@ -39,7 +39,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Test1234!\",\n  \"language\": \"he\",\n  \"country\": \"IL\"\n}"
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Test1234!\",\n  \"language\": \"en\",\n  \"country\": \"GB\"\n}"
             }
           }
         },
@@ -155,7 +155,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Site avec réservation en ligne\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"IL\",\n  \"targetCity\": \"Netanya\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"whatsappBooking\"\n  ],\n  \"messageLanguage\": \"he\"\n}"
+              "raw": "{\n  \"title\": \"Site avec réservation en ligne\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"GB\",\n  \"targetCity\": \"London\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"whatsappBooking\"\n  ],\n  \"messageLanguage\": \"en\"\n}"
             }
           },
           "event": [
@@ -225,7 +225,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Site + réservation (modifié)\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"IL\",\n  \"targetCity\": \"Netanya\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"whatsappBooking\"\n  ],\n  \"messageLanguage\": \"he\"\n}"
+              "raw": "{\n  \"title\": \"Site + réservation (modifié)\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"GB\",\n  \"targetCity\": \"London\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"whatsappBooking\"\n  ],\n  \"messageLanguage\": \"en\"\n}"
             }
           }
         },

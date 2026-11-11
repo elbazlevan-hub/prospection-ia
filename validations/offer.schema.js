@@ -10,8 +10,8 @@ export const offerSchema = z.object({
     .array(z.string().trim().min(2))
     .min(1, "choose at least one category")
     .max(10, "max 10 categories"),
-  targetCountry: z.string().trim().length(2, "targetCountry = ISO code (IL, FR, US...)"),
+  targetCountry: z.string().trim().length(2, "targetCountry = ISO code (US, FR, GB...)"),
   targetCity: z.string().trim().min(2).optional(),
   criteria: z.array(z.enum(CRITERIA)).min(1, "choose at least one criterion"),
-  messageLanguage: z.string().trim().length(2, "messageLanguage = 2 letters (he, fr, en...)"),
+  messageLanguage: z.string().trim().length(2, "messageLanguage = 2 letters (en, fr, es...)"),
 });

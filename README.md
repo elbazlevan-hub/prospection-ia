@@ -18,7 +18,7 @@ API Express + MongoDB Atlas. Le JWT est stocké dans un cookie httpOnly.
 | POST | /api/auth/logout | non | supprime le cookie |
 | GET | /api/auth/me | oui | utilisateur connecté |
 | POST | /api/offers | oui | créer une offre |
-| GET | /api/offers | oui | mes offres (`?country=IL&sort=-createdAt`) |
+| GET | /api/offers | oui | mes offres (`?country=GB&sort=-createdAt`) |
 | GET | /api/offers/:id | oui | une offre + nombre de prospects par statut |
 | PUT | /api/offers/:id | oui | modifier une offre |
 | DELETE | /api/offers/:id | oui | supprimer une offre et ses prospects |

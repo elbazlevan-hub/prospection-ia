@@ -22,7 +22,7 @@ export async function searchBusinesses(req, res) {
     return res.status(429).json({ message: "Please wait 1 minute between two searches" });
   }
 
-  // 1) une recherche Google par catégorie (ex. "barber Netanya", "nail salon Netanya")
+  // 1) une recherche Google par catégorie (ex. "barber London", "nail salon London")
   const places = new Map(); // googlePlaceId -> commerce (évite les doublons)
   for (const category of offer.targetCategories) {
     const query = offer.targetCity ? `${category} ${offer.targetCity}` : category;

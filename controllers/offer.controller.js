@@ -18,7 +18,7 @@ export async function createOffer(req, res) {
   res.status(201).json(offer);
 }
 
-// GET /api/offers?country=IL&sort=-createdAt
+// GET /api/offers?country=GB&sort=-createdAt
 export async function getOffers(req, res) {
   const { country, sort } = req.query;
   const filter = { userId: req.userId }; // seulement MES offres

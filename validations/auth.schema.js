@@ -8,8 +8,8 @@ export const registerSchema = z.object({
     .min(8, "password must be at least 8 characters")
     .regex(/[0-9]/, "password must contain a number")
     .regex(/[^A-Za-z0-9]/, "password must contain a special character"),
-  language: z.string().trim().length(2, "language = 2 letters (he, fr, en...)").optional(),
-  country: z.string().trim().length(2, "country = ISO code (IL, FR, US...)").optional(),
+  language: z.string().trim().length(2, "language = 2 letters (en, fr, es...)").optional(),
+  country: z.string().trim().length(2, "country = ISO code (US, FR, GB...)").optional(),
 });
 
 export const loginSchema = z.object({

@@ -6,8 +6,8 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ["user", "admin"], default: "user" },
-    language: { type: String, default: "he", lowercase: true },  // langue de l'interface
-    country: { type: String, uppercase: true },                  // code ISO : IL, FR, US...
+    language: { type: String, default: "en", lowercase: true },  // langue de l'interface
+    country: { type: String, uppercase: true },                  // code ISO : US, FR, GB...
   },
   { timestamps: true } // createdAt + updatedAt
 );
