@@ -26,6 +26,11 @@ export function errorHandler(err, req, res, next) {
     return res.status(409).json({ message: "Already exists", fields: Object.keys(err.keyValue || {}) });
   }
 
+  // erreur avec un code choisi par nous (ex. Google Places)
+  if (err.status) {
+    return res.status(err.status).json({ message: err.message });
+  }
+
   console.error(err); // pas de stack trace envoyée au client
   res.status(500).json({ message: "Internal server error" });
 }

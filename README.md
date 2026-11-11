@@ -4,7 +4,7 @@ API Express + MongoDB Atlas. Le JWT est stocké dans un cookie httpOnly.
 
 ## Lancer le serveur
 1. `npm install`
-2. Copier `.env.example` en `.env` et remplir `DATABASE_URL` (MongoDB Atlas) et `JWT_SECRET`
+2. Copier `.env.example` en `.env` et remplir `DATABASE_URL` (MongoDB Atlas), `JWT_SECRET` et `GOOGLE_PLACES_API_KEY` (Google Cloud → Places API (New))
 3. `npm start` → http://localhost:3000
 
 ## Collections
@@ -22,6 +22,8 @@ API Express + MongoDB Atlas. Le JWT est stocké dans un cookie httpOnly.
 | GET | /api/offers/:id | oui | une offre + nombre de prospects par statut |
 | PUT | /api/offers/:id | oui | modifier une offre |
 | DELETE | /api/offers/:id | oui | supprimer une offre et ses prospects |
+| POST | /api/offers/:id/search | oui | cherche les commerces sur Google Places et crée les prospects (1 fois / minute) |
+| GET | /api/offers/:id/leads | oui | prospects de l'offre avec le commerce (`?status=toContact`) |
 
 ## Tester avec Postman
 Importer `Prospection-API.postman_collection.json`. Lancer d'abord **Register** ou **Login** :

@@ -230,6 +230,42 @@
           }
         },
         {
+          "name": "Search businesses (Google)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}/search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}",
+                "search"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get offer leads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}/leads",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}",
+                "leads"
+              ]
+            }
+          }
+        },
+        {
           "name": "Delete offer",
           "request": {
             "method": "DELETE",

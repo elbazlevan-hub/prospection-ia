@@ -14,6 +14,7 @@ const offerSchema = new mongoose.Schema(
     targetCity: { type: String, trim: true },
     criteria: { type: [String], enum: CRITERIA, required: true },       // problèmes recherchés
     messageLanguage: { type: String, required: true, lowercase: true }, // he, fr, en...
+    lastSearchAt: Date, // dernière recherche Google (limite : 1 par minute)
   },
   { timestamps: true }
 );

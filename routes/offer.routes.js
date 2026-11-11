@@ -9,6 +9,7 @@ import {
   updateOffer,
   deleteOffer,
 } from "../controllers/offer.controller.js";
+import { searchBusinesses, getOfferLeads } from "../controllers/search.controller.js";
 
 const router = Router();
 
@@ -19,5 +20,8 @@ router.get("/", getOffers);
 router.get("/:id", getOfferById);
 router.put("/:id", validate(offerSchema), updateOffer);
 router.delete("/:id", deleteOffer);
+
+router.post("/:id/search", searchBusinesses); // lance la recherche Google
+router.get("/:id/leads", getOfferLeads);      // les prospects trouvés
 
 export default router;
