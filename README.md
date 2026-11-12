@@ -23,8 +23,13 @@ API Express + MongoDB Atlas. Le JWT est stocké dans un cookie httpOnly.
 | PUT | /api/offers/:id | oui | modifier une offre |
 | DELETE | /api/offers/:id | oui | supprimer une offre et ses prospects |
 | POST | /api/offers/:id/search | oui | cherche les commerces sur Google Places et crée les prospects (1 fois / minute) |
+| POST | /api/offers/:id/analyze | oui | visite le site de chaque prospect, détecte ses points faibles et calcule son score (0-100) |
 | GET | /api/offers/:id/leads | oui | prospects de l'offre avec le commerce (`?status=toContact`) |
 
 ## Tester avec Postman
 Importer `Prospection-API.postman_collection.json`. Lancer d'abord **Register** ou **Login** :
 Postman garde le cookie automatiquement pour les requêtes suivantes.
+
+## Critères d'une offre (`criteria`)
+`noWebsite`, `socialOnly`, `siteDown`, `oldWebsite`, `whatsappBooking`, `noOnlineBooking`, `lowRating`, `fewReviews`, `noSocial`.
+Le score d'un prospect = somme des poids des critères de l'offre qu'il remplit (max 100), voir `lib/scoring.js`.

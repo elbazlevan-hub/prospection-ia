@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
 
+import { CRITERIA } from "../lib/scoring.js";
+
 // ce que l'utilisateur vend aux commerces + qui il veut cibler
-export const CRITERIA = ["noWebsite", "oldWebsite", "whatsappBooking", "noOnlineBooking", "lowRating"];
+export { CRITERIA };
 
 const offerSchema = new mongoose.Schema(
   {

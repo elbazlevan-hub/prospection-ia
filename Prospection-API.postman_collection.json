@@ -155,7 +155,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Site avec réservation en ligne\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"GB\",\n  \"targetCity\": \"London\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"whatsappBooking\"\n  ],\n  \"messageLanguage\": \"en\"\n}"
+              "raw": "{\n  \"title\": \"Site avec réservation en ligne\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"GB\",\n  \"targetCity\": \"London\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"socialOnly\",\n    \"siteDown\",\n    \"oldWebsite\",\n    \"whatsappBooking\",\n    \"noOnlineBooking\"\n  ],\n  \"messageLanguage\": \"en\"\n}"
             }
           },
           "event": [
@@ -225,7 +225,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Site + réservation (modifié)\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"GB\",\n  \"targetCity\": \"London\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"whatsappBooking\"\n  ],\n  \"messageLanguage\": \"en\"\n}"
+              "raw": "{\n  \"title\": \"Site + réservation (modifié)\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"GB\",\n  \"targetCity\": \"London\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"socialOnly\",\n    \"siteDown\",\n    \"oldWebsite\",\n    \"whatsappBooking\",\n    \"noOnlineBooking\"\n  ],\n  \"messageLanguage\": \"en\"\n}"
             }
           }
         },
@@ -243,6 +243,24 @@
                 "offers",
                 "{{offerId}}",
                 "search"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Analyze leads",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}/analyze",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}",
+                "analyze"
               ]
             }
           }

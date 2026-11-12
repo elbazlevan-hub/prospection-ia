@@ -14,13 +14,22 @@ const businessSchema = new mongoose.Schema(
     email: { type: String, trim: true, lowercase: true },
     instagram: { type: String, trim: true },
     rating: { type: Number, min: 0, max: 5 },
+    reviewCount: { type: Number, min: 0 },     // nombre d'avis Google
     language: { type: String, lowercase: true },
-    // résultat de l'analyse du site (rempli à l'étape "analyse")
+    // résultat de l'analyse du site (rempli par POST /api/offers/:id/analyze)
     analysis: {
-      hasWebsite: Boolean,
+      hasWebsite: Boolean,      // a un vrai site (pas juste un réseau social)
+      socialOnly: Boolean,      // seulement Facebook / Instagram / Linktree
+      siteReachable: Boolean,   // le site répond
+      blockedByBot: Boolean,    // le site bloque les robots : impossible de l'analyser
+      https: Boolean,
+      mobileFriendly: Boolean,
+      copyrightYear: Number,
+      outdatedSignals: [String], // noHttps, notMobile, oldCopyright, oldTech, siteDown
       isOutdated: Boolean,
-      whatsappBooking: Boolean,
-      onlineBooking: Boolean,
+      whatsappBooking: Boolean, // lien WhatsApp pour réserver / commander
+      onlineBooking: Boolean,   // outil de réservation en ligne détecté
+      hasSocialLinks: Boolean,
     },
     analyzedAt: Date,
   },
