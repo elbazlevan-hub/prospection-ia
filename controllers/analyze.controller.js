@@ -44,9 +44,9 @@ export async function analyzeLeads(req, res) {
   await runInParallel(toAnalyze, async (business) => {
     const { contacts = {}, ...analysis } = await analyzeWebsite(business.website);
     business.analysis = analysis;
-    // on garde les contacts trouvés sur le site (sans écraser ceux qu'on a déjà)
-    if (contacts.email && !business.email) business.email = contacts.email;
-    if (contacts.instagram && !business.instagram) business.instagram = contacts.instagram;
+    // les contacts viennent du site : on les met à jour à chaque analyse
+    if (contacts.email) business.email = contacts.email;
+    if (contacts.instagram) business.instagram = contacts.instagram;
     business.analyzedAt = new Date();
     await business.save();
   });
