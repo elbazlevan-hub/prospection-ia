@@ -11,6 +11,10 @@
     {
       "key": "offerId",
       "value": ""
+    },
+    {
+      "key": "leadId",
+      "value": ""
     }
   ],
   "item": [
@@ -266,6 +270,42 @@
           }
         },
         {
+          "name": "Generate AI messages",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.leads && r.leads.length) pm.collectionVariables.set('leadId', r.leads[0]._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}/messages?limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}",
+                "messages"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
           "name": "Get offer leads",
           "request": {
             "method": "GET",
@@ -322,6 +362,46 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"title\": \"Si\",\n  \"targetCategories\": [],\n  \"targetCountry\": \"ISR\",\n  \"criteria\": [\n    \"foo\"\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leads",
+      "item": [
+        {
+          "name": "Get lead",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Regenerate lead message",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}/message",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}",
+                "message"
+              ]
             }
           }
         }

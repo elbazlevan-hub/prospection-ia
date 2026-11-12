@@ -11,6 +11,11 @@ const leadSchema = new mongoose.Schema(
     matchReasons: { type: [String], default: [] },
     score: { type: Number, min: 0, max: 100, default: 0 },
     message: { type: String, default: "" },       // généré par l'IA
+    emailSubject: { type: String, default: "" },  // objet de l'email (IA)
+    painPoints: { type: [String], default: [] },  // problèmes repérés par l'IA (avis, concurrents...)
+    customFit: Boolean,                           // correspond au critère libre de l'offre (IA)
+    customFitReason: String,
+    messageGeneratedAt: Date,
     status: { type: String, enum: LEAD_STATUS, default: "toContact" },
     contactedAt: Date,
     notes: { type: String, default: "" },

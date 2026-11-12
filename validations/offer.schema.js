@@ -14,4 +14,5 @@ export const offerSchema = z.object({
   targetCity: z.string().trim().min(2).optional(),
   criteria: z.array(z.enum(CRITERIA)).min(1, "choose at least one criterion"),
   messageLanguage: z.string().trim().length(2, "messageLanguage = 2 letters (en, fr, es...)"),
+  customCriterion: z.string().trim().min(5, "customCriterion is too short").max(300).optional(),
 });

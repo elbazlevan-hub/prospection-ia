@@ -32,6 +32,9 @@ const businessSchema = new mongoose.Schema(
       hasSocialLinks: Boolean,
     },
     analyzedAt: Date,
+    // avis Google (5 max), gardés 30 jours pour ne pas les redemander
+    reviews: [{ rating: Number, text: String, _id: false }],
+    reviewsFetchedAt: Date,
   },
   { timestamps: true }
 );
