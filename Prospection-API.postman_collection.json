@@ -324,6 +324,48 @@
           }
         },
         {
+          "name": "Export leads (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}/export",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}",
+                "export"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Export contacts only (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}/export?contacts=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}",
+                "export"
+              ],
+              "query": [
+                {
+                  "key": "contacts",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
           "name": "Delete offer",
           "request": {
             "method": "DELETE",

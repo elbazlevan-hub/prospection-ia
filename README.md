@@ -25,6 +25,7 @@ API Express + MongoDB Atlas. Le JWT est stocké dans un cookie httpOnly.
 | POST | /api/offers/:id/search | oui | cherche les commerces sur Google Places et crée les prospects (1 fois / minute) |
 | POST | /api/offers/:id/analyze | oui | visite le site de chaque prospect, détecte ses points faibles et calcule son score (0-100) |
 | POST | /api/offers/:id/messages | oui | l'IA écrit les messages des meilleurs prospects (`?limit=10`, max 30, `?force=true` pour réécrire) |
+| GET | /api/offers/:id/export | oui | télécharge les prospects en CSV (Excel) : contacts, score, message |
 | GET | /api/leads/:id | oui | un prospect avec son commerce et son message |
 | POST | /api/leads/:id/message | oui | réécrire le message IA d'un prospect |
 | GET | /api/offers/:id/leads | oui | prospects de l'offre avec le commerce (`?status=toContact`) |
