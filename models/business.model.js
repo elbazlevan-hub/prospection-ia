@@ -9,7 +9,7 @@ const businessSchema = new mongoose.Schema(
     country: { type: String, uppercase: true },
     city: { type: String, trim: true },
     address: { type: String, trim: true },
-    phone: { type: String, trim: true },        // format international : +44, +33, +1...
+    phone: { type: String, trim: true },        // portable seulement (pas de fixe), format international : +33 6..., +44 7...
     website: { type: String, trim: true },
     email: { type: String, trim: true, lowercase: true },
     instagram: { type: String, trim: true },

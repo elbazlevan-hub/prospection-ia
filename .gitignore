@@ -1,2 +1,6 @@
 node_modules
 .env
+
+# outil perso de collecte de contacts (hors projet de cours) et données privées
+scripts/
+*.csv

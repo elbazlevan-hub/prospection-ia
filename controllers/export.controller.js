@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Offer from "../models/offer.model.js";
 import Lead from "../models/lead.model.js";
+import { mobileOnly } from "../lib/phone.js";
 
 // une cellule CSV : on entoure de guillemets si besoin
 function cell(value) {
@@ -22,13 +23,15 @@ export async function exportLeadsCsv(req, res) {
     .sort({ score: -1, createdAt: -1 });
 
   const contactsOnly = req.query.contacts === "true";
+  // sécurité : jamais de fixe dans l'export, même pour d'anciennes données
+  const mobile = (b) => mobileOnly(b.phone, b.country);
 
   const header = ["Name", "Category", "City", "Phone", "Email", "Instagram", "Website", "Rating", "Reviews", "Score", "Reasons", "Status", "Email subject", "Message"];
   const rows = leads
     .filter((l) => l.businessId)
     .map((l) => {
       const b = l.businessId;
-      return [b.name, b.category, b.city, b.phone, b.email, b.instagram, b.website, b.rating, b.reviewCount, l.score, l.matchReasons.join(", "), l.status, l.emailSubject, l.message];
+      return [b.name, b.category, b.city, mobile(b), b.email, b.instagram, b.website, b.rating, b.reviewCount, l.score, l.matchReasons.join(", "), l.status, l.emailSubject, l.message];
     });
 
   // version simple : nom / téléphone / email
@@ -36,8 +39,8 @@ export async function exportLeadsCsv(req, res) {
     ? [
         ["Name", "Phone", "Email"],
         ...leads
-          .filter((l) => l.businessId && (l.businessId.phone || l.businessId.email))
-          .map((l) => [l.businessId.name, l.businessId.phone, l.businessId.email]),
+          .filter((l) => l.businessId && (mobile(l.businessId) || l.businessId.email))
+          .map((l) => [l.businessId.name, mobile(l.businessId), l.businessId.email]),
       ]
     : [header, ...rows];
 

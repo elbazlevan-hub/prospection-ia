@@ -4,6 +4,7 @@ import Business from "../models/business.model.js";
 import Lead from "../models/lead.model.js";
 import { analyzeWebsite } from "../lib/analyzeWebsite.js";
 import { scoreBusiness } from "../lib/scoring.js";
+import { isMobile } from "../lib/phone.js";
 
 const CACHE_DAYS = 7;       // un commerce analysé il y a moins de 7 jours n'est pas ré-analysé
 const PARALLEL = 6;         // nombre de sites visités en même temps
@@ -42,11 +43,14 @@ export async function analyzeLeads(req, res) {
     .filter((b) => b && (req.query.force === "true" || !b.analyzedAt || b.analyzedAt.getTime() < limit));
 
   await runInParallel(toAnalyze, async (business) => {
-    const { contacts = {}, ...analysis } = await analyzeWebsite(business.website);
+    const { contacts = {}, ...analysis } = await analyzeWebsite(business.website, business.country);
     business.analysis = analysis;
     // les contacts viennent du site : on les met à jour à chaque analyse
     if (contacts.email) business.email = contacts.email;
     if (contacts.instagram) business.instagram = contacts.instagram;
+    // on ne garde que des portables : un fixe (ancienne donnée) est remplacé ou effacé
+    if (business.phone && !isMobile(business.phone, business.country)) business.phone = undefined;
+    if (!business.phone && contacts.phone) business.phone = contacts.phone;
     business.analyzedAt = new Date();
     await business.save();
   });
@@ -70,11 +74,13 @@ export async function analyzeLeads(req, res) {
 
   const withEmail = leads.filter((l) => l.businessId?.email).length;
   const withInstagram = leads.filter((l) => l.businessId?.instagram).length;
+  const withMobile = leads.filter((l) => l.businessId?.phone).length;
 
   res.status(200).json({
     leads: leads.length,
     withEmail,      // prospects dont on a trouvé l'email
     withInstagram,  // prospects dont on a trouvé l'Instagram
+    withMobile,     // prospects dont on a un numéro de portable
     analyzedNow: toAnalyze.length,
     fromCache: leads.length - toAnalyze.length,
     hot: stats.hot,     // score >= 60
