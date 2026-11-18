@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import Offer from "../models/offer.model.js";
+import Offer, { citiesOf } from "../models/offer.model.js";
+import { blockedSetOf, isBlocked } from "../models/blocklist.model.js";
 import Business from "../models/business.model.js";
 import Lead from "../models/lead.model.js";
 import { searchPlaces } from "../lib/googlePlaces.js";
@@ -22,23 +23,27 @@ export async function searchBusinesses(req, res) {
     return res.status(429).json({ message: "Please wait 1 minute between two searches" });
   }
 
-  // 1) une recherche Google par catégorie (ex. "barber London", "nail salon London")
+  // 1) une recherche Google par ville et par catégorie (ex. "barber London", "nail salon Manchester")
+  const cities = citiesOf(offer);
   const places = new Map(); // googlePlaceId -> commerce (évite les doublons)
-  for (const category of offer.targetCategories) {
-    const query = offer.targetCity ? `${category} ${offer.targetCity}` : category;
-    const results = await searchPlaces({
-      query,
-      country: offer.targetCountry,
-      language: offer.messageLanguage,
-    });
-    for (const place of results) {
-      places.set(place.googlePlaceId, {
-        ...place,
-        category: place.category || category,
+  for (const city of cities.length ? cities : [null]) {
+    for (const category of offer.targetCategories) {
+      const query = city ? `${category} ${city}` : category;
+      const results = await searchPlaces({
+        query,
         country: offer.targetCountry,
-        city: offer.targetCity,
         language: offer.messageLanguage,
       });
+      for (const place of results) {
+        if (places.has(place.googlePlaceId)) continue;
+        places.set(place.googlePlaceId, {
+          ...place,
+          category: place.category || category,
+          country: offer.targetCountry,
+          city: city || undefined,
+          language: offer.messageLanguage,
+        });
+      }
     }
   }
 
@@ -59,8 +64,14 @@ export async function searchBusinesses(req, res) {
   const businesses = await Business.find({ googlePlaceId: { $in: list.map((b) => b.googlePlaceId) } });
 
   // 3) créer un lead par commerce pour cette offre (sans doublon grâce à l'index unique)
+  //    sauf pour les commerces de ma liste "ne plus contacter"
+  const blocked = await blockedSetOf(req.userId);
+  const allowed = businesses.filter((b) => !isBlocked(b, blocked));
+  if (allowed.length === 0) {
+    return res.status(200).json({ found: list.length, newBusinesses: businessResult.upsertedCount, newLeads: 0, blocked: businesses.length });
+  }
   const leadResult = await Lead.bulkWrite(
-    businesses.map((b) => ({
+    allowed.map((b) => ({
       updateOne: {
         filter: { offerId: offer._id, businessId: b._id },
         update: { $setOnInsert: { userId: req.userId, offerId: offer._id, businessId: b._id } },
@@ -73,6 +84,8 @@ export async function searchBusinesses(req, res) {
     found: list.length,
     newBusinesses: businessResult.upsertedCount,
     newLeads: leadResult.upsertedCount,
+    blocked: businesses.length - allowed.length, // ignorés : dans la liste "ne plus contacter"
+    cities: cities.length,
   });
 }
 

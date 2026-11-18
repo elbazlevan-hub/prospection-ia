@@ -13,7 +13,14 @@ const MAX_PER_CALL = 30; // limite de coût par appel
 function competitorsOf(business, allLeads) {
   const others = allLeads
     .map((l) => l.businessId)
-    .filter((b) => b && String(b._id) !== String(business._id) && b.category === business.category && b.analyzedAt);
+    .filter(
+      (b) =>
+        b &&
+        String(b._id) !== String(business._id) &&
+        b.category === business.category &&
+        b.city === business.city && // même ville (une offre peut avoir plusieurs villes)
+        b.analyzedAt
+    );
   return {
     total: others.length,
     withWebsite: others.filter((b) => b.analysis?.hasWebsite).length,
@@ -114,16 +121,6 @@ export async function generateOfferMessages(req, res) {
     leads: done
       .map((l) => ({ _id: l._id, name: l.businessId.name, score: l.score, subject: l.emailSubject, message: l.message })),
   });
-}
-
-// GET /api/leads/:id  -> un prospect avec son commerce
-export async function getLead(req, res) {
-  if (!mongoose.isValidObjectId(req.params.id)) {
-    return res.status(400).json({ message: "Invalid lead id" });
-  }
-  const lead = await Lead.findOne({ _id: req.params.id, userId: req.userId }).populate("businessId");
-  if (!lead) return res.status(404).json({ message: "Lead not found" });
-  res.status(200).json(lead);
 }
 
 // POST /api/leads/:id/message  -> (ré)écrire le message d'un seul prospect

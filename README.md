@@ -8,7 +8,7 @@ API Express + MongoDB Atlas. Le JWT est stocké dans un cookie httpOnly.
 3. `npm start` → http://localhost:3000
 
 ## Collections
-`users`, `offers`, `businesses`, `leads` (voir l'ERD)
+`users`, `offers`, `businesses`, `leads`, `blocklists` (voir l'ERD)
 
 ## Routes
 | Méthode | Route | Protégée | Rôle |
@@ -28,6 +28,13 @@ API Express + MongoDB Atlas. Le JWT est stocké dans un cookie httpOnly.
 | GET | /api/offers/:id/export | oui | télécharge les prospects en CSV (Excel) : contacts, score, message |
 | GET | /api/leads/:id | oui | un prospect avec son commerce et son message |
 | POST | /api/leads/:id/message | oui | réécrire le message IA d'un prospect |
+| PATCH | /api/leads/:id | oui | changer le statut, les notes ou le montant (`dealValue`) |
+| POST | /api/leads/:id/contact | oui | message (ou relance) envoyé par `channel` : programme les relances J+3 et J+7 |
+| POST | /api/leads/:id/block | oui | ne plus jamais contacter ce commerce (liste « ne plus contacter ») |
+| GET | /api/dashboard/today | oui | plan du jour : relances + prospects à contacter, limité par `dailyLimit` (`?offerId=`) |
+| GET | /api/dashboard/stats | oui | statuts, argent gagné / possible, taux de réponse par canal et par problème (`?offerId=`) |
+| GET | /api/blocklist | oui | mes commerces bloqués |
+| DELETE | /api/blocklist/:id | oui | débloquer un commerce |
 | GET | /api/offers/:id/leads | oui | prospects de l'offre avec le commerce (`?status=toContact`) |
 
 ## Tester avec Postman
@@ -42,3 +49,12 @@ Le score d'un prospect = somme des poids des critères de l'offre qu'il remplit 
 Pour chaque prospect, l'IA (Claude) reçoit : l'offre, les raisons détectées, les avis Google du commerce et la comparaison avec les concurrents de la même catégorie.
 Elle n'utilise que ces faits (pas d'invention), écrit dans la langue de l'offre et ajoute une phrase pour ne plus être contacté.
 Si l'offre a un `customCriterion` (critère libre), l'IA indique aussi si le commerce y correspond (`customFit`).
+
+## Suivi des prospects
+- **Statuts** : `toContact` → `contacted` → `interested` → `client` (ou `rejected`).
+- **Envoi en un clic** : `GET /api/leads/:id` renvoie `links` (WhatsApp avec le message déjà écrit, email avec objet et texte, profil Instagram, téléphone) et `nextMessage` (premier message ou relance).
+- **Relances** : après le premier contact, relance à J+3 puis à J+7 (`followUpAt`). Le plan du jour les affiche quand elles sont dues.
+- **Limite par jour** : `dailyLimit` de l'offre (20 par défaut) pour ne pas être bloqué par WhatsApp ou les messageries. `?force=true` pour la dépasser.
+- **Argent** : `price` et `currency` de l'offre ; `dealValue` du prospect (par défaut le prix de l'offre quand il devient client).
+- **Ne plus contacter** : un commerce bloqué n'est plus jamais proposé, ni dans les recherches, ni dans le plan du jour.
+- **Plusieurs villes** : `targetCities` (max 10, et villes x catégories <= 20 recherches).
