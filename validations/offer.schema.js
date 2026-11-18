@@ -20,6 +20,7 @@ export const offerSchema = z
     price: z.number().min(0, "price must be positive").max(1_000_000).default(0),
     currency: z.enum(CURRENCIES).default("USD"),
     dailyLimit: z.number().int().min(1).max(200, "max 200 contacts per day").default(20),
+    includeLandlines: z.boolean().default(false),
   })
   // une recherche = (villes x catégories) : on limite pour protéger le quota Google
   .refine((o) => (o.targetCities?.length || 1) * o.targetCategories.length <= 20, {
@@ -31,3 +32,16 @@ export const offerSchema = z
     const cities = [...new Set([...(targetCities || []), ...(targetCity ? [targetCity] : [])])];
     return { ...rest, targetCities: cities, targetCity: cities[0] };
   });
+
+// POST /api/offers/suggest : AIDY remplit l'offre à partir d'une description libre
+export const suggestOfferSchema = z.object({
+  text: z.string().trim().min(15, "describe what you sell in at least 15 characters").max(1500),
+  country: z.string().trim().length(2, "country = ISO code (US, FR, GB...)").toUpperCase().optional(),
+  city: z.string().trim().min(2).max(80).optional(),
+  language: z.string().trim().length(2, "language = 2 letters (en, fr, es...)").toLowerCase().optional(),
+});
+
+// POST /api/offers/:id/unlock : débloquer les meilleurs prospects
+export const unlockSchema = z.object({
+  count: z.number().int().min(1).max(100, "max 100 leads at once").default(5),
+});

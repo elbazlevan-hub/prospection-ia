@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Offer, { citiesOf } from "../models/offer.model.js";
 import Lead from "../models/lead.model.js";
-import { mobileOnly } from "../lib/phone.js";
+import { mobileOnly, landlineOf } from "../lib/phone.js";
 
 // une cellule CSV : on entoure de guillemets si besoin
 function cell(value) {
@@ -23,13 +23,14 @@ export async function exportLeadsCsv(req, res) {
     .sort({ score: -1, createdAt: -1 });
 
   const contactsOnly = req.query.contacts === "true";
-  // sécurité : jamais de fixe dans l'export, même pour d'anciennes données
-  const mobile = (b) => mobileOnly(b.phone, b.country);
+  // sécurité : pas de fixe dans l'export sauf si l'offre l'autorise
+  // portable ; le fixe seulement si l'offre l'autorise
+  const mobile = (b) => mobileOnly(b.phone, b.country) || (offer.includeLandlines ? landlineOf(b) : undefined);
 
   const header = ["Name", "Category", "City", "Phone", "Email", "Instagram", "Website", "Rating", "Reviews", "Score", "Reasons", "Status", "Contacted via", "Contacted at", "Next follow-up", "Deal value", "Notes", "Email subject", "Message"];
   const day = (d) => (d ? new Date(d).toISOString().slice(0, 10) : "");
-  const rows = leads
-    .filter((l) => l.businessId)
+  const unlocked = leads.filter((l) => l.businessId && l.unlocked !== false); // jamais les verrouillés
+  const rows = unlocked
     .map((l) => {
       const b = l.businessId;
       return [b.name, b.category, b.city, mobile(b), b.email, b.instagram, b.website, b.rating, b.reviewCount, l.score, l.matchReasons.join(", "), l.status, l.contactedVia, day(l.contactedAt), day(l.followUpAt), l.dealValue, l.notes, l.emailSubject, l.message];
@@ -39,8 +40,8 @@ export async function exportLeadsCsv(req, res) {
   const table = contactsOnly
     ? [
         ["Name", "Phone", "Email"],
-        ...leads
-          .filter((l) => l.businessId && (mobile(l.businessId) || l.businessId.email))
+        ...unlocked
+          .filter((l) => mobile(l.businessId) || l.businessId.email)
           .map((l) => [l.businessId.name, mobile(l.businessId), l.businessId.email]),
       ]
     : [header, ...rows];

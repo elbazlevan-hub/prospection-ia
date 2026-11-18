@@ -4,6 +4,8 @@ import Offer from "../models/offer.model.js";
 import User from "../models/user.model.js";
 import Blocklist, { blockedSetOf, isBlocked } from "../models/blocklist.model.js";
 import { sendLinks, followUpMessage, nextFollowUp, startOfToday, MAX_FOLLOW_UPS } from "../lib/outreach.js";
+import { isLocked, publicLead } from "../lib/locking.js";
+import { generateFor } from "./message.controller.js";
 
 function checkId(id, res) {
   if (!mongoose.isValidObjectId(id)) {
@@ -33,14 +35,75 @@ export function nextMessageOf(lead, offer, senderName) {
 }
 
 // ajoute au prospect les liens d'envoi (WhatsApp, email, Instagram, téléphone)
+// un prospect verrouillé est renvoyé masqué (sans nom, contacts ni message)
 export function withLinks(lead, offer, senderName) {
-  const next = nextMessageOf(lead, offer, senderName);
-  const canSend = ["toContact", "contacted"].includes(lead.status) && Boolean(next.text);
-  return {
-    ...lead.toObject(),
-    nextMessage: canSend ? next : null,
-    links: canSend && lead.businessId ? sendLinks(lead.businessId, next.text, next.subject) : {},
-  };
+  return publicLead(lead, offer, () => {
+    const next = nextMessageOf(lead, offer, senderName);
+    const canSend = ["toContact", "contacted"].includes(lead.status) && Boolean(next.text);
+    return {
+      nextMessage: canSend ? next : null,
+      links:
+        canSend && lead.businessId
+          ? sendLinks(lead.businessId, next.text, next.subject, { includeLandlines: offer?.includeLandlines })
+          : {},
+    };
+  });
+}
+
+// débloque des prospects (1 crédit chacun) puis AIDY écrit leur message
+// renvoie { unlocked, credits, messageErrors }
+export async function unlockLeads(leads, offer, user, writeMessages = true) {
+  const toUnlock = leads.filter((l) => isLocked(l));
+  const free = user.role === "admin";
+  const count = free ? toUnlock.length : Math.min(toUnlock.length, user.credits);
+  const chosen = toUnlock.slice(0, count);
+  if (chosen.length === 0) return { unlocked: [], credits: user.credits, messageErrors: 0 };
+
+  const now = new Date();
+  for (const lead of chosen) {
+    lead.unlocked = true;
+    lead.unlockedAt = now;
+    await lead.save();
+  }
+  if (!free) {
+    user.credits -= chosen.length;
+    await user.save();
+  }
+
+  // le message AIDY est inclus dans le déblocage
+  let messageErrors = 0;
+  if (writeMessages) {
+    const allLeads = await Lead.find({ offerId: offer._id, userId: user._id }).populate("businessId");
+    for (const lead of chosen) {
+      if (lead.message || !(lead.score > 0)) continue;
+      try {
+        await generateFor(lead, offer, allLeads, user.name);
+      } catch (err) {
+        console.error("Message generation failed:", err.message);
+        messageErrors++;
+      }
+    }
+  }
+  return { unlocked: chosen, credits: user.credits, messageErrors };
+}
+
+// POST /api/leads/:id/unlock  -> débloque UN prospect (1 crédit) + message AIDY  (?message=false pour ne pas l'écrire)
+export async function unlockLead(req, res) {
+  const lead = await findMyLead(req, res);
+  if (!lead) return;
+  const offer = await Offer.findById(lead.offerId);
+  const user = await User.findById(req.userId);
+  if (!isLocked(lead)) return res.status(200).json({ credits: user.credits, lead: withLinks(lead, offer, user.name) });
+
+  if (user.role !== "admin" && user.credits < 1) {
+    return res.status(402).json({ message: "No credits left: buy a pack to unlock more leads", credits: 0 });
+  }
+  const result = await unlockLeads([lead], offer, user, req.query.message !== "false");
+  res.status(200).json({
+    credits: result.credits,
+    messageError: result.messageErrors > 0 || undefined,
+    lead: withLinks(lead, offer, user.name),
+  });
 }
 
 // GET /api/leads/:id  -> un prospect avec son commerce, son message et les liens d'envoi
@@ -57,6 +120,7 @@ export async function getLead(req, res) {
 export async function updateLead(req, res) {
   const lead = await findMyLead(req, res);
   if (!lead) return;
+  if (isLocked(lead)) return res.status(403).json({ message: "Unlock this lead first" });
   const offer = await Offer.findById(lead.offerId);
   const { status, notes, dealValue } = req.body;
   const now = new Date();
@@ -103,6 +167,7 @@ export async function updateLead(req, res) {
 export async function contactLead(req, res) {
   const lead = await findMyLead(req, res);
   if (!lead) return;
+  if (isLocked(lead)) return res.status(403).json({ message: "Unlock this lead first" });
   if (!["toContact", "contacted"].includes(lead.status)) {
     return res.status(400).json({ message: `This lead is already "${lead.status}": change its status instead` });
   }
@@ -152,6 +217,7 @@ export async function contactLead(req, res) {
 export async function blockLead(req, res) {
   const lead = await findMyLead(req, res);
   if (!lead) return;
+  if (isLocked(lead)) return res.status(403).json({ message: "Unlock this lead first" });
   const b = lead.businessId;
   if (!b) return res.status(404).json({ message: "Business not found" });
 

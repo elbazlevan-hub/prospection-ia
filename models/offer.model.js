@@ -23,6 +23,7 @@ const offerSchema = new mongoose.Schema(
     price: { type: Number, min: 0, default: 0 },                        // prix du service (paiement unique)
     currency: { type: String, enum: CURRENCIES, default: "USD" },
     dailyLimit: { type: Number, min: 1, max: 200, default: 20 },        // contacts max par jour (évite d'être bloqué)
+    includeLandlines: { type: Boolean, default: false },                // montrer aussi les numéros fixes (pour appeler)
     lastSearchAt: Date, // dernière recherche Google (limite : 1 par minute)
   },
   { timestamps: true }

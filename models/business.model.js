@@ -10,6 +10,9 @@ const businessSchema = new mongoose.Schema(
     city: { type: String, trim: true },
     address: { type: String, trim: true },
     phone: { type: String, trim: true },        // portable seulement (pas de fixe), format international : +33 6..., +44 7...
+    landline: { type: String, trim: true },     // numéro fixe (seulement pour appeler, si l'offre l'autorise)
+    photoCount: { type: Number, min: 0 },       // photos sur la fiche Google (Google en renvoie 10 max)
+    hasHours: Boolean,                          // horaires renseignés sur la fiche Google
     website: { type: String, trim: true },
     email: { type: String, trim: true, lowercase: true },
     instagram: { type: String, trim: true },

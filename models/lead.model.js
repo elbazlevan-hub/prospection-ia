@@ -18,6 +18,10 @@ const leadSchema = new mongoose.Schema(
     customFitReason: String,
     messageGeneratedAt: Date,
     status: { type: String, enum: LEAD_STATUS, default: "toContact" },
+    // false = verrouillé : nom, adresse, contacts et message cachés tant qu'il n'est pas débloqué
+    // (pas de valeur par défaut : les anciens prospects, sans ce champ, restent visibles)
+    unlocked: Boolean,
+    unlockedAt: Date,
     contactedAt: Date,                                     // premier contact
     contactedVia: { type: String, enum: CHANNELS },        // canal du premier contact
     lastContactAt: Date,                                   // dernier contact (premier message ou relance)

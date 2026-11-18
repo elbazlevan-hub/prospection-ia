@@ -4,6 +4,8 @@ import Lead from "../models/lead.model.js";
 import User from "../models/user.model.js";
 import { writeMessage } from "../lib/messageWriter.js";
 import { getPlaceReviews } from "../lib/googlePlaces.js";
+import { isLocked } from "../lib/locking.js";
+import { withLinks } from "./lead.controller.js";
 
 const REVIEWS_CACHE_DAYS = 30;
 const PARALLEL = 2; // messages écrits en même temps (les nouveaux comptes Claude ont une limite par minute)
@@ -40,7 +42,7 @@ async function reviewsOf(business, language) {
 }
 
 // écrit et enregistre le message d'un lead
-async function generateFor(lead, offer, allLeads, senderName) {
+export async function generateFor(lead, offer, allLeads, senderName) {
   const business = lead.businessId;
   const reviews = await reviewsOf(business, offer.messageLanguage);
   const result = await writeMessage({
@@ -62,7 +64,7 @@ async function generateFor(lead, offer, allLeads, senderName) {
   return lead;
 }
 
-async function runInParallel(items, fn) {
+export async function runInParallel(items, fn) {
   let index = 0;
   const errors = [];
   const done = [];
@@ -99,11 +101,11 @@ export async function generateOfferMessages(req, res) {
     .sort({ score: -1, createdAt: -1 });
 
   const toWrite = allLeads
-    .filter((l) => l.businessId && l.score > 0 && (force || !l.message))
+    .filter((l) => l.businessId && !isLocked(l) && l.score > 0 && (force || !l.message)) // seulement les débloqués
     .slice(0, limit);
 
   if (toWrite.length === 0) {
-    return res.status(200).json({ written: 0, message: "No lead to write: run the analysis first, or use ?force=true" });
+    return res.status(200).json({ written: 0, message: "No lead to write: run the analysis, unlock leads, or use ?force=true" });
   }
 
   const user = await User.findById(req.userId);
@@ -130,11 +132,12 @@ export async function regenerateLeadMessage(req, res) {
   }
   const lead = await Lead.findOne({ _id: req.params.id, userId: req.userId }).populate("businessId");
   if (!lead) return res.status(404).json({ message: "Lead not found" });
+  if (isLocked(lead)) return res.status(403).json({ message: "Unlock this lead first" });
 
   const offer = await Offer.findById(lead.offerId);
   const allLeads = await Lead.find({ offerId: lead.offerId, userId: req.userId }).populate("businessId");
   const user = await User.findById(req.userId);
 
   await generateFor(lead, offer, allLeads, user?.name);
-  res.status(200).json(lead);
+  res.status(200).json(withLinks(lead, offer, user?.name));
 }

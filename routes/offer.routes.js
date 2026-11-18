@@ -1,13 +1,16 @@
 import { Router } from "express";
 import { auth } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
-import { offerSchema } from "../validations/offer.schema.js";
+import { offerSchema, suggestOfferSchema, unlockSchema } from "../validations/offer.schema.js";
 import {
   createOffer,
   getOffers,
   getOfferById,
   updateOffer,
   deleteOffer,
+  getTemplates,
+  suggest,
+  unlockBest,
 } from "../controllers/offer.controller.js";
 import { searchBusinesses, getOfferLeads } from "../controllers/search.controller.js";
 import { analyzeLeads } from "../controllers/analyze.controller.js";
@@ -17,6 +20,10 @@ import { exportLeadsCsv } from "../controllers/export.controller.js";
 const router = Router();
 
 router.use(auth); // toutes les routes des offres demandent d'être connecté
+
+// avant "/:id" : sinon "templates" serait pris pour un id
+router.get("/templates", getTemplates);                          // modèles d'offres par métier
+router.post("/suggest", validate(suggestOfferSchema), suggest);  // AIDY remplit l'offre à partir d'un texte
 
 router.post("/", validate(offerSchema), createOffer);
 router.get("/", getOffers);
@@ -28,6 +35,7 @@ router.post("/:id/search", searchBusinesses); // lance la recherche Google
 router.post("/:id/analyze", analyzeLeads);    // analyse les sites + calcule les scores
 router.post("/:id/messages", generateOfferMessages); // messages IA pour les meilleurs prospects
 router.get("/:id/export", exportLeadsCsv);   // fichier CSV / Excel des prospects
-router.get("/:id/leads", getOfferLeads);      // les prospects trouvés (triés par score)
+router.get("/:id/leads", getOfferLeads);      // les prospects trouvés (triés par score, verrouillés masqués)
+router.post("/:id/unlock", validate(unlockSchema), unlockBest); // débloque les meilleurs (crédits) + messages AIDY
 
 export default router;

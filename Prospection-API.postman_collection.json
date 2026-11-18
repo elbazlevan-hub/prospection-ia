@@ -143,6 +143,75 @@
    "name": "Offers",
    "item": [
     {
+     "name": "Offer templates (par métier)",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseUrl}}/offers/templates",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "offers",
+        "templates"
+       ]
+      }
+     }
+    },
+    {
+     "name": "Suggest offer with AIDY",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/offers/suggest",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "offers",
+        "suggest"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"text\": \"Je suis photographe, je fais des photos de plats et de salles pour les restaurants qui ont peu de photos ou des photos de mauvaise qualité sur Google.\",\n  \"country\": \"FR\",\n  \"city\": \"Lyon\",\n  \"language\": \"fr\"\n}"
+      }
+     }
+    },
+    {
+     "name": "Suggest offer - invalide (400)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/offers/suggest",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "offers",
+        "suggest"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"text\": \"photo\",\n  \"country\": \"FRA\"\n}"
+      }
+     }
+    },
+    {
      "name": "Create offer",
      "request": {
       "method": "POST",
@@ -163,7 +232,7 @@
       },
       "body": {
        "mode": "raw",
-       "raw": "{\n  \"title\": \"Site avec réservation en ligne\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"GB\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"socialOnly\",\n    \"siteDown\",\n    \"oldWebsite\",\n    \"whatsappBooking\",\n    \"noOnlineBooking\"\n  ],\n  \"messageLanguage\": \"en\",\n  \"targetCities\": [\n    \"London\",\n    \"Manchester\"\n  ],\n  \"price\": 900,\n  \"currency\": \"GBP\",\n  \"dailyLimit\": 20\n}"
+       "raw": "{\n  \"title\": \"Site avec réservation en ligne\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"GB\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"socialOnly\",\n    \"siteDown\",\n    \"oldWebsite\",\n    \"whatsappBooking\",\n    \"noOnlineBooking\"\n  ],\n  \"messageLanguage\": \"en\",\n  \"targetCities\": [\n    \"London\",\n    \"Manchester\"\n  ],\n  \"price\": 900,\n  \"currency\": \"GBP\",\n  \"dailyLimit\": 20,\n  \"includeLandlines\": false\n}"
       }
      },
      "event": [
@@ -199,12 +268,11 @@
        "script": {
         "type": "text/javascript",
         "exec": [
-         "// remplit offerId tout seul : l'offre qui a déjà des recherches (sinon la plus récente)",
+         "// remplit offerId tout seul : l'offre la plus récente",
          "const offers = pm.response.json();",
          "if (Array.isArray(offers) && offers.length) {",
-         "  const best = offers.find(o => o.lastSearchAt) || offers[0];",
-         "  pm.collectionVariables.set('offerId', best._id);",
-         "  console.log('offerId =', best._id, '-', best.title);",
+         "  pm.collectionVariables.set('offerId', offers[0]._id);",
+         "  console.log('offerId =', offers[0]._id, '-', offers[0].title);",
          "}"
         ]
        }
@@ -250,7 +318,7 @@
       },
       "body": {
        "mode": "raw",
-       "raw": "{\n  \"title\": \"Site + réservation (modifié)\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"GB\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"socialOnly\",\n    \"siteDown\",\n    \"oldWebsite\",\n    \"whatsappBooking\",\n    \"noOnlineBooking\"\n  ],\n  \"messageLanguage\": \"en\",\n  \"targetCities\": [\n    \"London\"\n  ],\n  \"price\": 900,\n  \"currency\": \"GBP\",\n  \"dailyLimit\": 25\n}"
+       "raw": "{\n  \"title\": \"Site + réservation (modifié)\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"GB\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"socialOnly\",\n    \"siteDown\",\n    \"oldWebsite\",\n    \"whatsappBooking\",\n    \"noOnlineBooking\"\n  ],\n  \"messageLanguage\": \"en\",\n  \"targetCities\": [\n    \"London\"\n  ],\n  \"price\": 900,\n  \"currency\": \"GBP\",\n  \"dailyLimit\": 25,\n  \"includeLandlines\": false\n}"
       }
      }
     },
@@ -349,13 +417,54 @@
        "script": {
         "type": "text/javascript",
         "exec": [
-         "// remplit leadId tout seul : le meilleur prospect qui a déjà un message IA",
+         "// remplit leadId tout seul : le meilleur prospect débloqué qui a un message AIDY",
          "const leads = pm.response.json();",
          "if (Array.isArray(leads) && leads.length) {",
-         "  const best = leads.find(l => l.message && l.status === 'toContact') || leads.find(l => l.message) || leads[0];",
+         "  const open = leads.filter(l => !l.locked);",
+         "  const best = open.find(l => l.message && l.status === 'toContact') || open.find(l => l.message) || open[0] || leads[0];",
          "  pm.collectionVariables.set('leadId', best._id);",
-         "  console.log('leadId =', best._id, '-', best.businessId && best.businessId.name);",
+         "  console.log('leadId =', best._id, '-', best.businessId ? best.businessId.name : '(verrouillé)');",
+         "  console.log('verrouillés :', leads.filter(l => l.locked).length, '/ débloqués :', open.length);",
          "}"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Unlock best leads (+ messages AIDY)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/offers/{{offerId}}/unlock",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "offers",
+        "{{offerId}}",
+        "unlock"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"count\": 5\n}"
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "const r = pm.response.json();",
+         "if (r.leads && r.leads.length) { pm.collectionVariables.set('leadId', r.leads[0]._id); console.log('leadId =', r.leads[0]._id); }"
         ]
        }
       }
@@ -463,6 +572,24 @@
        "path": [
         "leads",
         "{{leadId}}"
+       ]
+      }
+     }
+    },
+    {
+     "name": "Unlock lead (1 crédit)",
+     "request": {
+      "method": "POST",
+      "header": [],
+      "url": {
+       "raw": "{{baseUrl}}/leads/{{leadId}}/unlock",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "leads",
+        "{{leadId}}",
+        "unlock"
        ]
       }
      }

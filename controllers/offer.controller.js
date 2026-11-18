@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 import Offer from "../models/offer.model.js";
 import Lead from "../models/lead.model.js";
+import User from "../models/user.model.js";
+import { OFFER_TEMPLATES } from "../lib/templates.js";
+import { suggestOffer } from "../lib/offerSuggester.js";
+import { unlockLeads, withLinks } from "./lead.controller.js";
 
 // ID invalide -> 400 (sinon CastError)
 function checkId(id, res) {
@@ -43,8 +47,9 @@ export async function getOfferById(req, res) {
     { $group: { _id: "$status", count: { $sum: 1 } } },
   ]);
   const leadsByStatus = Object.fromEntries(stats.map((s) => [s._id, s.count]));
+  const lockedLeads = await Lead.countDocuments({ offerId: offer._id, unlocked: false });
 
-  res.status(200).json({ offer, leadsByStatus });
+  res.status(200).json({ offer, leadsByStatus, lockedLeads });
 }
 
 // PUT /api/offers/:id  (remplacement complet, body validé par le même schéma que POST)
@@ -70,4 +75,47 @@ export async function deleteOffer(req, res) {
 
   await Lead.deleteMany({ offerId: offer._id });
   res.status(204).send();
+}
+
+// GET /api/offers/templates  -> modèles d'offres par métier
+export function getTemplates(req, res) {
+  res.status(200).json(OFFER_TEMPLATES);
+}
+
+// POST /api/offers/suggest  { text, country?, city?, language? }
+// AIDY propose une offre complète à partir d'une description libre (rien n'est enregistré :
+// l'utilisateur vérifie, corrige, puis crée l'offre avec POST /api/offers)
+export async function suggest(req, res) {
+  const draft = await suggestOffer(req.body);
+  res.status(200).json(draft);
+}
+
+// POST /api/offers/:id/unlock  { count: 5 }
+// débloque les meilleurs prospects verrouillés (1 crédit chacun) et AIDY écrit leurs messages
+export async function unlockBest(req, res) {
+  if (!checkId(req.params.id, res)) return;
+  const offer = await Offer.findOne({ _id: req.params.id, userId: req.userId });
+  if (!offer) return res.status(404).json({ message: "Offer not found" });
+
+  const user = await User.findById(req.userId);
+  if (user.role !== "admin" && user.credits < 1) {
+    return res.status(402).json({ message: "No credits left: buy a pack to unlock more leads", credits: 0 });
+  }
+
+  // les meilleurs prospects encore verrouillés (score > 0 : ils ont au moins un problème recherché)
+  const locked = await Lead.find({ offerId: offer._id, userId: req.userId, unlocked: false, score: { $gt: 0 } })
+    .populate("businessId")
+    .sort({ score: -1, createdAt: -1 })
+    .limit(req.body.count);
+  if (locked.length === 0) {
+    return res.status(200).json({ unlocked: 0, credits: user.credits, message: "No locked lead to unlock (run the analysis first?)" });
+  }
+
+  const result = await unlockLeads(locked, offer, user, req.query.message !== "false");
+  res.status(200).json({
+    unlocked: result.unlocked.length,
+    credits: result.credits,
+    messageErrors: result.messageErrors,
+    leads: result.unlocked.map((l) => withLinks(l, offer, user.name)),
+  });
 }
