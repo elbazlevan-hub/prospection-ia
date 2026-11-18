@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Offer from "../models/offer.model.js";
 import Lead from "../models/lead.model.js";
-import User from "../models/user.model.js";
+import User, { senderNameOf } from "../models/user.model.js";
 import { OFFER_TEMPLATES } from "../lib/templates.js";
 import { suggestOffer } from "../lib/offerSuggester.js";
 import { unlockLeads, withLinks } from "./lead.controller.js";
@@ -116,6 +116,6 @@ export async function unlockBest(req, res) {
     unlocked: result.unlocked.length,
     credits: result.credits,
     messageErrors: result.messageErrors,
-    leads: result.unlocked.map((l) => withLinks(l, offer, user.name)),
+    leads: result.unlocked.map((l) => withLinks(l, offer, senderNameOf(user))),
   });
 }

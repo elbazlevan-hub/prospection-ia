@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Offer from "../models/offer.model.js";
 import Lead from "../models/lead.model.js";
-import User from "../models/user.model.js";
+import User, { senderNameOf } from "../models/user.model.js";
 import { writeMessage } from "../lib/messageWriter.js";
 import { getPlaceReviews } from "../lib/googlePlaces.js";
 import { isLocked } from "../lib/locking.js";
@@ -109,7 +109,7 @@ export async function generateOfferMessages(req, res) {
   }
 
   const user = await User.findById(req.userId);
-  const { errors, done } = await runInParallel(toWrite, (lead) => generateFor(lead, offer, allLeads, user?.name));
+  const { errors, done } = await runInParallel(toWrite, (lead) => generateFor(lead, offer, allLeads, senderNameOf(user)));
 
   // si toutes les écritures ont échoué (ex. clé IA invalide), on renvoie l'erreur
   if (errors.length === toWrite.length) throw errors[0];
@@ -138,6 +138,6 @@ export async function regenerateLeadMessage(req, res) {
   const allLeads = await Lead.find({ offerId: lead.offerId, userId: req.userId }).populate("businessId");
   const user = await User.findById(req.userId);
 
-  await generateFor(lead, offer, allLeads, user?.name);
-  res.status(200).json(withLinks(lead, offer, user?.name));
+  await generateFor(lead, offer, allLeads, senderNameOf(user));
+  res.status(200).json(withLinks(lead, offer, senderNameOf(user)));
 }

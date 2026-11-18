@@ -37,6 +37,11 @@ API Express + MongoDB Atlas. Le JWT est stocké dans un cookie httpOnly.
 | POST | /api/leads/:id/block | oui | ne plus jamais contacter ce commerce (liste « ne plus contacter ») |
 | GET | /api/dashboard/today | oui | plan du jour : relances + prospects à contacter, limité par `dailyLimit` (`?offerId=`) |
 | GET | /api/dashboard/stats | oui | statuts, argent gagné / possible, taux de réponse par canal et par problème (`?offerId=`) |
+| GET | /api/dashboard/inbox | oui | « À répondre » : prospects qui ont répondu, classés par priorité (`?offerId=`) |
+| POST | /api/leads/:id/reply | oui (Premium) | coller la réponse du prospect : AIDY la classe (intéressé, question, rendez-vous, pas intéressé, STOP), met à jour le statut et écrit la réponse |
+| POST | /api/leads/:id/reply/sent | oui | la réponse a été envoyée (ajoutée à la conversation) |
+| GET | /api/profile | oui | ma fiche infos (prix, délais, liens…) |
+| PUT | /api/profile | oui | modifier ma fiche infos |
 | GET | /api/blocklist | oui | mes commerces bloqués |
 | DELETE | /api/blocklist/:id | oui | débloquer un commerce |
 | GET | /api/offers/:id/leads | oui | prospects de l'offre avec le commerce (`?status=toContact`) |
@@ -71,3 +76,10 @@ Si l'offre a un `customCriterion` (critère libre), l'IA indique aussi si le com
 
 ## Numéros fixes
 Par défaut, seuls les portables sont gardés (WhatsApp possible). Avec `includeLandlines: true` dans l'offre, les fixes sont aussi montrés, avec un lien pour appeler.
+
+## Assistant de réponse AIDY (Premium)
+1. L'utilisateur remplit sa **fiche infos** (`PUT /api/profile`) : signature, prix, délais, réalisations, lien de rendez-vous, garanties, FAQ.
+2. Quand un prospect répond, il colle sa réponse (`POST /api/leads/:id/reply`).
+3. AIDY la classe : 🟢 `interested`, ❓ `question`, 📅 `meeting`, 🔴 `notInterested`, ⛔ `stop`, met à jour le statut (STOP → liste « ne plus contacter ») et écrit la réponse **avec seulement les infos de la fiche** (rien d'inventé), dans la langue du prospect.
+4. `GET /api/dashboard/inbox` liste ceux qui attendent une réponse : rendez-vous, puis questions, puis intéressés.
+5. Les montants des clients gardent un **historique** (`dealHistory`).

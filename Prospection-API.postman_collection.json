@@ -140,6 +140,77 @@
    ]
   },
   {
+   "name": "Profile (fiche infos)",
+   "item": [
+    {
+     "name": "Get my profile",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseUrl}}/profile",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "profile"
+       ]
+      }
+     }
+    },
+    {
+     "name": "Update my profile",
+     "request": {
+      "method": "PUT",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/profile",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "profile"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"signature\": \"Nyxela\",\n  \"priceInfo\": \"Site vitrine 900 €, site avec réservation en ligne 1 200 €\",\n  \"deliveryTime\": \"7 jours\",\n  \"portfolioUrl\": \"https://example.com/realisations\",\n  \"bookingUrl\": \"https://calendly.com/exemple/15min\",\n  \"guarantees\": \"Modifications illimitées pendant 14 jours\",\n  \"faq\": \"Paiement en une fois. Hébergement et nom de domaine inclus la première année.\"\n}"
+      }
+     }
+    },
+    {
+     "name": "Update my profile - invalide (400)",
+     "request": {
+      "method": "PUT",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/profile",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "profile"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"bookingUrl\": \"calendly\"\n}"
+      }
+     }
+    }
+   ]
+  },
+  {
    "name": "Offers",
    "item": [
     {
@@ -755,6 +826,88 @@
        }
       }
      ]
+    },
+    {
+     "name": "Reply assistant AIDY (Premium)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/leads/{{leadId}}/reply",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "leads",
+        "{{leadId}}",
+        "reply"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"text\": \"Bonjour, merci pour votre message. C'est combien pour un site avec réservation ? Et vous pouvez le faire en combien de temps ?\"\n}"
+      }
+     }
+    },
+    {
+     "name": "Reply assistant - STOP",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/leads/{{leadId}}/reply",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "leads",
+        "{{leadId}}",
+        "reply"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"text\": \"STOP, ne me contactez plus.\"\n}"
+      }
+     }
+    },
+    {
+     "name": "Reply sent",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/leads/{{leadId}}/reply/sent",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "leads",
+        "{{leadId}}",
+        "reply",
+        "sent"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{}"
+      }
+     }
     }
    ]
   },
@@ -837,6 +990,23 @@
          "key": "offerId",
          "value": "{{offerId}}"
         }
+       ]
+      }
+     }
+    },
+    {
+     "name": "Inbox (à répondre)",
+     "request": {
+      "method": "GET",
+      "header": [],
+      "url": {
+       "raw": "{{baseUrl}}/dashboard/inbox",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "dashboard",
+        "inbox"
        ]
       }
      }

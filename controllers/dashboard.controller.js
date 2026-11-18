@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import Lead from "../models/lead.model.js";
 import Offer from "../models/offer.model.js";
-import User from "../models/user.model.js";
+import User, { senderNameOf } from "../models/user.model.js";
 import { blockedSetOf, isBlocked } from "../models/blocklist.model.js";
-import { startOfToday, endOfToday } from "../lib/outreach.js";
+import { startOfToday, endOfToday, sendLinks } from "../lib/outreach.js";
 import { withLinks } from "./lead.controller.js";
 
 // ?offerId=... (optionnel) -> filtre sur une offre ; sinon toutes mes offres
@@ -42,7 +42,7 @@ export async function getToday(req, res) {
 
   const blocked = await blockedSetOf(req.userId);
   const user = await User.findById(req.userId);
-  const toCard = (lead) => withLinks(lead, offersById.get(String(lead.offerId)), user?.name);
+  const toCard = (lead) => withLinks(lead, offersById.get(String(lead.offerId)), senderNameOf(user));
   const notBlocked = (lead) => lead.businessId && !isBlocked(lead.businessId, blocked);
 
   // 1) les relances prévues aujourd'hui (ou en retard), les plus anciennes d'abord
@@ -161,5 +161,42 @@ export async function getStats(req, res) {
     byChannel,
     byReason,
     bestReason: bestReason ? { reason: bestReason[0], ...bestReason[1] } : null,
+  });
+}
+
+// les réponses les plus urgentes d'abord
+const PRIORITY = { meeting: 0, question: 1, interested: 2, notInterested: 3, stop: 4 };
+
+// GET /api/dashboard/inbox?offerId=
+// "À répondre" : les prospects qui ont répondu et attendent une réponse, classés par priorité
+export async function getInbox(req, res) {
+  const scope = await scopeOf(req, res);
+  if (!scope) return;
+  const { filter } = scope;
+
+  const leads = await Lead.find({ ...filter, waitingForMe: true }).populate("businessId").sort({ lastReplyAt: 1 });
+  const offers = await Offer.find({ userId: req.userId });
+  const offersById = new Map(offers.map((o) => [String(o._id), o]));
+  const user = await User.findById(req.userId);
+
+  leads.sort((a, b) => (PRIORITY[a.replyLabel] ?? 9) - (PRIORITY[b.replyLabel] ?? 9) || a.lastReplyAt - b.lastReplyAt);
+
+  const counts = { meeting: 0, question: 0, interested: 0 };
+  for (const l of leads) if (counts[l.replyLabel] !== undefined) counts[l.replyLabel] += 1;
+
+  res.status(200).json({
+    toAnswer: leads.length,
+    counts,
+    leads: leads.map((l) => ({
+      ...withLinks(l, offersById.get(String(l.offerId)), senderNameOf(user)),
+      lastReply: l.replies.filter((r) => r.from === "prospect").at(-1) || null,
+      // liens pour envoyer la réponse écrite par AIDY (WhatsApp / email déjà remplis)
+      replyLinks:
+        l.businessId && l.suggestedReply
+          ? sendLinks(l.businessId, l.suggestedReply, l.emailSubject ? `Re: ${l.emailSubject}` : "", {
+              includeLandlines: offersById.get(String(l.offerId))?.includeLandlines,
+            })
+          : {},
+    })),
   });
 }

@@ -30,6 +30,21 @@ const leadSchema = new mongoose.Schema(
     repliedAt: Date,                                       // le commerce a répondu
     clientAt: Date,                                        // devenu client
     dealValue: { type: Number, min: 0 },                   // montant payé par le client
+    dealHistory: [{ value: Number, at: Date, _id: false }], // chaque changement de montant, avec sa date
+    // assistant de réponse (Premium) : la conversation avec le prospect
+    replies: [
+      {
+        from: { type: String, enum: ["prospect", "me"] },
+        text: String,
+        label: String, // pour les réponses du prospect : interested, question, meeting, notInterested, stop
+        at: Date,
+        _id: false,
+      },
+    ],
+    replyLabel: { type: String, enum: ["interested", "question", "meeting", "notInterested", "stop"] }, // dernière réponse
+    suggestedReply: { type: String, default: "" }, // réponse écrite par AIDY, à envoyer
+    lastReplyAt: Date,                             // dernière réponse du prospect
+    waitingForMe: { type: Boolean, default: false }, // le prospect attend une réponse
     notes: { type: String, default: "" },
   },
   { timestamps: true }

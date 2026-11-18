@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 import Lead from "../models/lead.model.js";
 import Offer from "../models/offer.model.js";
-import User from "../models/user.model.js";
+import User, { senderNameOf, isPremium } from "../models/user.model.js";
+import { analyzeReply } from "../lib/replyAssistant.js";
 import Blocklist, { blockedSetOf, isBlocked } from "../models/blocklist.model.js";
 import { sendLinks, followUpMessage, nextFollowUp, startOfToday, MAX_FOLLOW_UPS } from "../lib/outreach.js";
 import { isLocked, publicLead } from "../lib/locking.js";
@@ -77,7 +78,7 @@ export async function unlockLeads(leads, offer, user, writeMessages = true) {
     for (const lead of chosen) {
       if (lead.message || !(lead.score > 0)) continue;
       try {
-        await generateFor(lead, offer, allLeads, user.name);
+        await generateFor(lead, offer, allLeads, senderNameOf(user));
       } catch (err) {
         console.error("Message generation failed:", err.message);
         messageErrors++;
@@ -93,7 +94,7 @@ export async function unlockLead(req, res) {
   if (!lead) return;
   const offer = await Offer.findById(lead.offerId);
   const user = await User.findById(req.userId);
-  if (!isLocked(lead)) return res.status(200).json({ credits: user.credits, lead: withLinks(lead, offer, user.name) });
+  if (!isLocked(lead)) return res.status(200).json({ credits: user.credits, lead: withLinks(lead, offer, senderNameOf(user)) });
 
   if (user.role !== "admin" && user.credits < 1) {
     return res.status(402).json({ message: "No credits left: buy a pack to unlock more leads", credits: 0 });
@@ -102,7 +103,7 @@ export async function unlockLead(req, res) {
   res.status(200).json({
     credits: result.credits,
     messageError: result.messageErrors > 0 || undefined,
-    lead: withLinks(lead, offer, user.name),
+    lead: withLinks(lead, offer, senderNameOf(user)),
   });
 }
 
@@ -112,7 +113,7 @@ export async function getLead(req, res) {
   if (!lead) return;
   const offer = await Offer.findById(lead.offerId);
   const user = await User.findById(req.userId);
-  res.status(200).json(withLinks(lead, offer, user?.name));
+  res.status(200).json(withLinks(lead, offer, senderNameOf(user)));
 }
 
 // PATCH /api/leads/:id  { status?, notes?, dealValue? }
@@ -126,6 +127,7 @@ export async function updateLead(req, res) {
   const now = new Date();
 
   if (notes !== undefined) lead.notes = notes;
+  const oldValue = lead.dealValue;
   if (dealValue !== undefined) lead.dealValue = dealValue;
 
   if (status && status !== lead.status) {
@@ -150,14 +152,20 @@ export async function updateLead(req, res) {
       lead.followUpAt = undefined;
       if (lead.dealValue === undefined) lead.dealValue = offer?.price || 0; // par défaut : le prix de l'offre
     }
+    if (["interested", "client", "rejected"].includes(status)) lead.waitingForMe = false;
     if (status === "rejected") {
       lead.followUpAt = undefined;
     }
   }
 
+  // historique des montants (visible : on sait quand et comment le montant a changé)
+  if (lead.dealValue !== undefined && lead.dealValue !== oldValue) {
+    lead.dealHistory.push({ value: lead.dealValue, at: now });
+  }
+
   await lead.save();
   const user = await User.findById(req.userId);
-  res.status(200).json(withLinks(lead, offer, user?.name));
+  res.status(200).json(withLinks(lead, offer, senderNameOf(user)));
 }
 
 // POST /api/leads/:id/contact  { channel: "whatsapp" | "email" | "instagram" | "phone" | "other" }
@@ -208,7 +216,7 @@ export async function contactLead(req, res) {
   res.status(200).json({
     sentToday: sentToday + 1,
     dailyLimit,
-    lead: withLinks(lead, offer, user?.name),
+    lead: withLinks(lead, offer, senderNameOf(user)),
   });
 }
 
@@ -234,4 +242,87 @@ export async function blockLead(req, res) {
   );
 
   res.status(201).json({ blocked: entry, leadsUpdated: updated.modifiedCount });
+}
+
+// ce que devient le prospect selon sa réponse
+const STATUS_BY_LABEL = { interested: "interested", question: "interested", meeting: "interested", notInterested: "rejected", stop: "rejected" };
+
+// POST /api/leads/:id/reply  { text }  (Premium)
+// on colle la réponse du prospect : AIDY la classe, met à jour le statut et écrit la réponse à envoyer
+export async function replyToLead(req, res) {
+  const lead = await findMyLead(req, res);
+  if (!lead) return;
+  if (isLocked(lead)) return res.status(403).json({ message: "Unlock this lead first" });
+
+  const user = await User.findById(req.userId);
+  if (!isPremium(user)) {
+    return res.status(402).json({ message: "The AIDY reply assistant is a Premium feature" });
+  }
+  const offer = await Offer.findById(lead.offerId);
+
+  const result = await analyzeReply({
+    offer,
+    business: lead.businessId,
+    lead,
+    sellerProfile: user.toObject().sellerProfile || {},
+    signature: senderNameOf(user),
+    prospectText: req.body.text,
+  });
+
+  const now = new Date();
+  lead.replies.push({ from: "prospect", text: req.body.text, label: result.label, at: now });
+  lead.replyLabel = result.label;
+  lead.lastReplyAt = now;
+  lead.repliedAt = lead.repliedAt || now;
+  lead.suggestedReply = result.reply;
+  lead.followUpAt = undefined; // il a répondu : plus de relance automatique
+  if (!lead.contactedAt) lead.contactedAt = now;
+  if (lead.status !== "client") lead.status = STATUS_BY_LABEL[result.label];
+  lead.waitingForMe = !["notInterested", "stop"].includes(result.label);
+  await lead.save();
+
+  // STOP : le commerce va dans la liste "ne plus contacter"
+  let blocked = false;
+  if (result.label === "stop" && lead.businessId) {
+    const b = lead.businessId;
+    await Blocklist.findOneAndUpdate(
+      { userId: req.userId, googlePlaceId: b.googlePlaceId },
+      { userId: req.userId, businessId: b._id, googlePlaceId: b.googlePlaceId, name: b.name, phone: b.phone, email: b.email, reason: "Asked to stop (AIDY)" },
+      { upsert: true }
+    );
+    await Lead.updateMany({ userId: req.userId, businessId: b._id }, { $set: { status: "rejected" }, $unset: { followUpAt: "" } });
+    blocked = true;
+  }
+
+  const subject = lead.emailSubject ? `Re: ${lead.emailSubject}` : "";
+  res.status(200).json({
+    label: result.label,
+    summary: result.summary,
+    questions: result.questions,
+    missingInfo: result.missingInfo, // infos à ajouter à la fiche pour mieux répondre
+    reply: result.reply,
+    blocked,
+    links: lead.businessId ? sendLinks(lead.businessId, result.reply, subject, { includeLandlines: offer?.includeLandlines }) : {},
+    lead: withLinks(lead, offer, senderNameOf(user)),
+  });
+}
+
+// POST /api/leads/:id/reply/sent  { text? }
+// la réponse a été envoyée (le texte d'AIDY, ou la version modifiée) : on l'ajoute à la conversation
+export async function replySent(req, res) {
+  const lead = await findMyLead(req, res);
+  if (!lead) return;
+  if (isLocked(lead)) return res.status(403).json({ message: "Unlock this lead first" });
+  const text = req.body.text || lead.suggestedReply;
+  if (!text) return res.status(400).json({ message: "No reply to save" });
+
+  lead.replies.push({ from: "me", text, at: new Date() });
+  lead.suggestedReply = "";
+  lead.waitingForMe = false;
+  lead.lastContactAt = new Date();
+  await lead.save();
+
+  const offer = await Offer.findById(lead.offerId);
+  const user = await User.findById(req.userId);
+  res.status(200).json(withLinks(lead, offer, senderNameOf(user)));
 }

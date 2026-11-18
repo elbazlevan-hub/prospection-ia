@@ -19,3 +19,13 @@ export const contactLeadSchema = z.object({
 export const blockLeadSchema = z.object({
   reason: z.string().trim().max(300).optional(),
 });
+
+// POST /api/leads/:id/reply : coller la réponse du prospect
+export const replySchema = z.object({
+  text: z.string().trim().min(1, "paste the business's reply").max(3000),
+});
+
+// POST /api/leads/:id/reply/sent : la réponse d'AIDY (éventuellement modifiée) a été envoyée
+export const replySentSchema = z.object({
+  text: z.string().trim().min(1).max(3000).optional(),
+});
