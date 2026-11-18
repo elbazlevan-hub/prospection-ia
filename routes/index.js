@@ -5,6 +5,7 @@ import leadRoutes from "./lead.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
 import blocklistRoutes from "./blocklist.routes.js";
 import profileRoutes from "./profile.routes.js";
+import packRoutes from "./pack.routes.js";
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.use("/leads", leadRoutes);          // /api/leads/...
 router.use("/dashboard", dashboardRoutes); // /api/dashboard/today, /stats
 router.use("/blocklist", blocklistRoutes); // /api/blocklist
 router.use("/profile", profileRoutes);     // /api/profile (fiche infos du vendeur)
+router.use("/packs", packRoutes);          // /api/packs (packs Standard / Premium / Recharge)
 
 export default router;

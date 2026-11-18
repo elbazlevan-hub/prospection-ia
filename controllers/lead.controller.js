@@ -99,6 +99,10 @@ export async function unlockLead(req, res) {
   if (user.role !== "admin" && user.credits < 1) {
     return res.status(402).json({ message: "No credits left: buy a pack to unlock more leads", credits: 0 });
   }
+  // on débloque après l'analyse : sinon on ne sait pas encore quel est son problème
+  if (!lead.businessId?.analyzedAt) {
+    return res.status(400).json({ message: "Run the analysis first: AIDY needs to know this business's problems" });
+  }
   const result = await unlockLeads([lead], offer, user, req.query.message !== "false");
   res.status(200).json({
     credits: result.credits,
@@ -191,7 +195,7 @@ export async function contactLead(req, res) {
 
   // limite par jour (WhatsApp / emails bloqués si on envoie trop)
   const offer = await Offer.findById(lead.offerId);
-  const dailyLimit = offer?.dailyLimit || 20;
+  const dailyLimit = offer?.dailyLimit || 60;
   const sentToday = await Lead.countDocuments({ userId: req.userId, lastContactAt: { $gte: startOfToday() } });
   if (sentToday >= dailyLimit && req.query.force !== "true") {
     return res.status(429).json({ message: `Daily limit reached (${dailyLimit} contacts today). Try again tomorrow or use ?force=true` });

@@ -48,8 +48,11 @@ export async function getOfferById(req, res) {
   ]);
   const leadsByStatus = Object.fromEntries(stats.map((s) => [s._id, s.count]));
   const lockedLeads = await Lead.countDocuments({ offerId: offer._id, unlocked: false });
+  // commerces analysés sans aucun problème lié à l'offre (cachés dans la liste)
+  const zero = await Lead.find({ offerId: offer._id, score: 0 }).populate("businessId", "analyzedAt");
+  const noProblemLeads = zero.filter((l) => l.businessId?.analyzedAt).length;
 
-  res.status(200).json({ offer, leadsByStatus, lockedLeads });
+  res.status(200).json({ offer, leadsByStatus, lockedLeads, noProblemLeads });
 }
 
 // PUT /api/offers/:id  (remplacement complet, body validé par le même schéma que POST)

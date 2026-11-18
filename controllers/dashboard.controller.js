@@ -35,7 +35,7 @@ export async function getToday(req, res) {
 
   const offers = await Offer.find({ userId: req.userId });
   const offersById = new Map(offers.map((o) => [String(o._id), o]));
-  const dailyLimit = offer?.dailyLimit || Math.max(20, ...offers.map((o) => o.dailyLimit || 20));
+  const dailyLimit = offer?.dailyLimit || Math.max(60, ...offers.map((o) => o.dailyLimit || 60));
 
   const sentToday = await Lead.countDocuments({ userId: req.userId, lastContactAt: { $gte: startOfToday() } });
   let remaining = Math.max(dailyLimit - sentToday, 0);

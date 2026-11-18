@@ -9,6 +9,15 @@ import { searchPlaces } from "../lib/googlePlaces.js";
 
 const WAIT_BETWEEN_SEARCHES = 60 * 1000; // 1 minute (protège le quota Google)
 
+// nom du pays en anglais pour la recherche Google (ex. "FR" -> "France")
+function countryName(code) {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "region" }).of(code) || code;
+  } catch {
+    return code;
+  }
+}
+
 // POST /api/offers/:id/search
 // cherche sur Google les commerces qui correspondent à l'offre,
 // les enregistre dans businesses et crée un lead (prospect) pour chacun
@@ -38,7 +47,8 @@ export async function searchBusinesses(req, res) {
   const places = new Map(); // googlePlaceId -> commerce (évite les doublons)
   for (const city of cities.length ? cities : [null]) {
     for (const category of categories) {
-      const query = city ? `${category} ${city}` : category;
+      // sans ville : on cherche dans tout le pays (ex. "restaurant Israel")
+      const query = city ? `${category} ${city}` : `${category} ${countryName(offer.targetCountry)}`;
       const results = await searchPlaces({
         query,
         country: offer.targetCountry,
@@ -60,7 +70,8 @@ export async function searchBusinesses(req, res) {
   const list = [...places.values()];
   offer.lastSearchAt = new Date();
   await offer.save();
-  if (trial) {
+  // la recherche gratuite n'est "consommée" que si elle a trouvé des commerces
+  if (trial && list.length > 0) {
     user.freeSearchUsed = true;
     await user.save();
   }
@@ -111,8 +122,9 @@ export async function searchBusinesses(req, res) {
   });
 }
 
-// GET /api/offers/:id/leads?status=toContact
-// les prospects d'une offre, avec les infos du commerce
+// GET /api/offers/:id/leads?status=toContact   (?all=true pour voir aussi ceux sans problème)
+// les prospects d'une offre, avec les infos du commerce.
+// Les commerces analysés SANS aucun problème lié à l'offre (score 0) sont cachés : ils n'ont pas besoin du service.
 export async function getOfferLeads(req, res) {
   if (!mongoose.isValidObjectId(req.params.id)) {
     return res.status(400).json({ message: "Invalid offer id" });
@@ -128,6 +140,8 @@ export async function getOfferLeads(req, res) {
     .populate("businessId") // remplace l'id par le document du commerce
     .sort({ score: -1, createdAt: -1 });
 
+  const useful = req.query.all === "true" ? leads : leads.filter((l) => !(l.businessId?.analyzedAt && l.score === 0));
+
   // les prospects verrouillés sont masqués (pas de nom, d'adresse ni de contact)
-  res.status(200).json(leads.map((l) => publicLead(l, offer)));
+  res.status(200).json(useful.map((l) => publicLead(l, offer)));
 }

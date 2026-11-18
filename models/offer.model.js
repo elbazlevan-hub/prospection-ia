@@ -5,7 +5,13 @@ import { CRITERIA } from "../lib/scoring.js";
 // ce que l'utilisateur vend aux commerces + qui il veut cibler
 export { CRITERIA };
 
-export const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD", "CHF"];
+// principales devises (codes ISO 4217)
+export const CURRENCIES = [
+  "EUR", "USD", "GBP", "CHF", "CAD", "AUD", "NZD", "JPY", "CNY", "HKD", "SGD", "INR", "KRW",
+  "AED", "SAR", "QAR", "KWD", "ILS", "TRY", "EGP", "MAD", "TND", "DZD", "XOF", "XAF", "ZAR", "NGN", "KES",
+  "BRL", "MXN", "ARS", "CLP", "COP", "PEN", "SEK", "NOK", "DKK", "PLN", "CZK", "HUF", "RON", "BGN", "RUB", "UAH",
+  "THB", "MYR", "IDR", "PHP", "VND",
+];
 
 const offerSchema = new mongoose.Schema(
   {
@@ -21,8 +27,9 @@ const offerSchema = new mongoose.Schema(
     messageLanguage: { type: String, required: true, lowercase: true }, // en, fr, es...
     customCriterion: { type: String, trim: true }, // critère libre jugé par l'IA, ex. "restaurants qui semblent avoir besoin d'un service de nettoyage"
     price: { type: Number, min: 0, default: 0 },                        // prix du service (paiement unique)
+    priceOnQuote: { type: Boolean, default: false },                    // prix "sur devis" (pas de prix fixe)
     currency: { type: String, enum: CURRENCIES, default: "USD" },
-    dailyLimit: { type: Number, min: 1, max: 200, default: 20 },        // contacts max par jour (évite d'être bloqué)
+    dailyLimit: { type: Number, min: 1, max: 200, default: 60 },        // commerces contactés max par jour (1 message chacun)
     includeLandlines: { type: Boolean, default: false },                // montrer aussi les numéros fixes (pour appeler)
     lastSearchAt: Date, // dernière recherche Google (limite : 1 par minute)
   },

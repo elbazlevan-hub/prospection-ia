@@ -18,8 +18,9 @@ export const offerSchema = z
     messageLanguage: z.string().trim().length(2, "messageLanguage = 2 letters (en, fr, es...)"),
     customCriterion: z.string().trim().min(5, "customCriterion is too short").max(300).optional(),
     price: z.number().min(0, "price must be positive").max(1_000_000).default(0),
+    priceOnQuote: z.boolean().default(false),
     currency: z.enum(CURRENCIES).default("USD"),
-    dailyLimit: z.number().int().min(1).max(200, "max 200 contacts per day").default(20),
+    dailyLimit: z.number().int().min(1).max(200, "max 200 contacts per day").default(60),
     includeLandlines: z.boolean().default(false),
   })
   // une recherche = (villes x catégories) : on limite pour protéger le quota Google
