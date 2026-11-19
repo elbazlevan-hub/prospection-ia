@@ -6,10 +6,12 @@ import { emailKeyOf, ipHashOf, FREE_TRIALS_PER_IP, TRIAL_WINDOW_DAYS } from "../
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
 // options du cookie : httpOnly = le JavaScript du navigateur ne peut pas lire le token
+// en ligne, si l'app et l'API sont sur 2 domaines différents : COOKIE_SAMESITE=none (https obligatoire)
+const isProd = process.env.NODE_ENV === "production";
 const cookieOptions = {
   httpOnly: true,
-  sameSite: "lax",
-  secure: process.env.NODE_ENV === "production", // https seulement en production
+  sameSite: process.env.COOKIE_SAMESITE || "lax",
+  secure: isProd || process.env.COOKIE_SAMESITE === "none", // https seulement en production
   maxAge: ONE_DAY,
 };
 

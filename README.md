@@ -92,10 +92,10 @@ Par défaut, seuls les portables sont gardés (WhatsApp possible). Avec `include
 
 | Pack | Prix | Crédits | Recherches | Assistant de réponse |
 |---|---|---|---|---|
-| Gratuit (à l'inscription) | 0 € | 5 | 1 | non |
-| Standard | 29 € | 60 | illimitées | non |
-| Premium | 49 € | 120 | illimitées | oui |
-| Recharge | 17 € | 30 | illimitées | garde la formule actuelle |
+| Gratuit (à l'inscription) | 0 $ | 5 | 1 | non |
+| Standard | 29 $ | 60 | illimitées | non |
+| Premium | 49 $ | 120 | illimitées | oui |
+| Recharge | 17 $ | 30 | illimitées | garde la formule actuelle |
 
 - La **Recharge** n'est possible qu'après un premier pack (sinon **400**). Un Premium qui achète une recharge reste Premium.
 - Chaque achat est enregistré dans la collection `purchases` (historique affiché dans l'app).
@@ -108,3 +108,11 @@ Pour éviter qu'une personne crée plein de comptes pour avoir 5 commerces gratu
 - **2 essais gratuits maximum par connexion internet sur 30 jours** (`FREE_TRIALS_PER_IP` dans le `.env`). L'adresse IP n'est jamais stockée en clair, seulement une empreinte (hash SHA-256).
 - Au-delà, le compte est quand même créé mais **sans les 5 crédits** (`trialGiven: false`) : il peut acheter un pack. Une famille ou une école sur la même connexion n'est donc pas bloquée.
 - En local (localhost) la limite par IP ne s'applique pas, pour pouvoir tester.
+
+## Mise en ligne (Render, Railway…)
+- Commande de démarrage : `node app.js` (les variables viennent de l'hébergeur, pas du fichier `.env`).
+- Variables à remplir : `DATABASE_URL`, `JWT_SECRET`, `GOOGLE_PLACES_API_KEY`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`,
+  `NODE_ENV=production`, `CLIENT_URL` (adresse de l'app React en ligne ; plusieurs adresses possibles, séparées par des virgules).
+- Si l'app et l'API sont sur 2 domaines différents sans proxy : `COOKIE_SAMESITE=none`. Avec le proxy Netlify du client (`public/_redirects`), rien à ajouter.
+- MongoDB Atlas → *Network Access* : autoriser l'adresse du serveur (ou `0.0.0.0/0`).
+- `trust proxy` est activé en production : l'IP réelle du visiteur est utilisée pour l'anti-abus.
