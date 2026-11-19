@@ -37,9 +37,13 @@ const offerSchema = new mongoose.Schema(
 );
 
 // les villes de l'offre (nouvelles offres : targetCities, anciennes : targetCity)
+// "toutes les villes", "all", "כל"... = tout le pays (pas une vraie ville)
+const EVERYWHERE = /^(tou(t|te|tes|s)|partout|all|every|everywhere|whole|any|todas?|todos?|cualquier|כל)(?=\s|$)/i;
+export const isEverywhere = (city) => EVERYWHERE.test(String(city || "").trim());
+
 export function citiesOf(offer) {
-  if (offer.targetCities?.length) return offer.targetCities;
-  return offer.targetCity ? [offer.targetCity] : [];
+  const cities = offer.targetCities?.length ? offer.targetCities : offer.targetCity ? [offer.targetCity] : [];
+  return cities.filter((c) => !isEverywhere(c)); // vide = recherche dans tout le pays
 }
 
 export default mongoose.model("Offer", offerSchema);
