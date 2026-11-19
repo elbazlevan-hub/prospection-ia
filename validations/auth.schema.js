@@ -1,8 +1,13 @@
 import { z } from "zod";
+import { isDisposableEmail } from "../lib/antiAbuse.js";
 
 export const registerSchema = z.object({
   name: z.string().trim().min(2, "name must be at least 2 characters"),
-  email: z.string().trim().email("invalid email"),
+  email: z
+    .string()
+    .trim()
+    .email("invalid email")
+    .refine((email) => !isDisposableEmail(email), "disposable email addresses are not accepted"),
   password: z
     .string()
     .min(8, "password must be at least 8 characters")

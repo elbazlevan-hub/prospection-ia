@@ -8,6 +8,9 @@ import { notFound, errorHandler } from "./middlewares/error.middleware.js";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// en ligne (Render, Railway...) le serveur est derrière un proxy : req.ip = la vraie IP du visiteur (anti-abus)
+if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);
+
 // autorise le front React à appeler l'API en envoyant le cookie
 app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173", credentials: true }));
 app.use(express.json());   // lire le JSON du body

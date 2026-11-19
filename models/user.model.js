@@ -12,6 +12,10 @@ const userSchema = new mongoose.Schema(
     plan: { type: String, enum: ["free", "paid", "premium"], default: "free" }, // premium = assistant de réponse AIDY
     credits: { type: Number, min: 0, default: 5 },              // prospects qu'il peut encore débloquer (5 offerts)
     freeSearchUsed: { type: Boolean, default: false },           // essai gratuit : 1 seule recherche
+    // anti-abus : un essai gratuit par boîte mail et 2 max par connexion internet (voir lib/antiAbuse.js)
+    trialGiven: { type: Boolean, default: true },                // false = compte créé sans les 5 crédits offerts
+    emailKey: { type: String, index: true },                     // la vraie boîte mail (sans les +alias)
+    trialIpHash: { type: String, index: true },                  // IP hachée à l'inscription (jamais en clair)
     // fiche infos du vendeur : AIDY s'en sert pour répondre aux prospects (sans rien inventer)
     sellerProfile: {
       signature: { type: String, trim: true },     // nom affiché en bas des messages (ex. "Nyxela")
@@ -31,6 +35,8 @@ userSchema.set("toJSON", {
   transform: (doc, ret) => {
     delete ret.passwordHash;
     delete ret.__v;
+    delete ret.trialIpHash;
+    delete ret.emailKey;
     return ret;
   },
 });

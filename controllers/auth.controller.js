@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
+import { emailKeyOf, ipHashOf, FREE_TRIALS_PER_IP, TRIAL_WINDOW_DAYS } from "../lib/antiAbuse.js";
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
@@ -12,10 +13,20 @@ const cookieOptions = {
   maxAge: ONE_DAY,
 };
 
-function sendToken(res, user, status) {
+function sendToken(res, user, status, extra = {}) {
   const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
   res.cookie("token", token, cookieOptions);
-  res.status(status).json({ user }); // toJSON enlève passwordHash
+  res.status(status).json({ user, ...extra }); // toJSON enlève passwordHash
+}
+
+// a-t-il droit aux 5 crédits offerts ? (anti-abus : pas d'essai en boucle avec plein de comptes)
+async function canGetFreeTrial(emailKey, trialIpHash) {
+  const sameMailbox = await User.exists({ emailKey });
+  if (sameMailbox) return false; // jean+2@gmail.com = même boîte que jean@gmail.com
+  if (!trialIpHash) return true;  // en local : pas de limite par IP
+  const since = new Date(Date.now() - TRIAL_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+  const trialsFromIp = await User.countDocuments({ trialIpHash, trialGiven: true, createdAt: { $gte: since } });
+  return trialsFromIp < FREE_TRIALS_PER_IP;
 }
 
 // POST /api/auth/register  (body déjà validé par Zod)
@@ -27,10 +38,19 @@ export async function register(req, res) {
     return res.status(409).json({ message: "Email already exists" });
   }
 
-  const passwordHash = await bcrypt.hash(password, 10); // 10 salt rounds
-  const user = await User.create({ name, email, passwordHash, language, country });
+  const emailKey = emailKeyOf(email);
+  const trialIpHash = ipHashOf(req);
+  const trialGiven = await canGetFreeTrial(emailKey, trialIpHash);
 
-  sendToken(res, user, 201); // connecté directement après l'inscription
+  const passwordHash = await bcrypt.hash(password, 10); // 10 salt rounds
+  const user = await User.create({
+    name, email, passwordHash, language, country,
+    emailKey, trialIpHash, trialGiven,
+    // sans essai gratuit : 0 crédit et plus de recherche gratuite -> il peut quand même acheter un pack
+    ...(trialGiven ? {} : { credits: 0, freeSearchUsed: true }),
+  });
+
+  sendToken(res, user, 201, { trialGiven }); // connecté directement après l'inscription
 }
 
 // POST /api/auth/login
