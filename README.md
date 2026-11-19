@@ -95,7 +95,7 @@ Par défaut, seuls les portables sont gardés (WhatsApp possible). Avec `include
 | Gratuit (à l'inscription) | 0 $ | 5 | 1 | non |
 | Standard | 29 $ | 60 | illimitées | non |
 | Premium | 49 $ | 120 | illimitées | oui |
-| Recharge | 17 $ | 30 | illimitées | garde la formule actuelle |
+| Recharge | 19 $ | 30 | illimitées | garde la formule actuelle |
 
 - La **Recharge** n'est possible qu'après un premier pack (sinon **400**). Un Premium qui achète une recharge reste Premium.
 - Chaque achat est enregistré dans la collection `purchases` (historique affiché dans l'app).
