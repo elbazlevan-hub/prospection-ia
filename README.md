@@ -4,11 +4,11 @@ API Express + MongoDB Atlas. Le JWT est stocké dans un cookie httpOnly.
 
 ## Lancer le serveur
 1. `npm install`
-2. Copier `.env.example` en `.env` et remplir `DATABASE_URL` (MongoDB Atlas), `JWT_SECRET` `GOOGLE_PLACES_API_KEY` (Google Cloud → Places API (New)) et `ANTHROPIC_API_KEY` (console.anthropic.com)
+2. Copier `.env.example` en `.env` et remplir `DATABASE_URL` (MongoDB Atlas), `JWT_SECRET`, `GOOGLE_PLACES_API_KEY` (Google Cloud → Places API (New)) et `ANTHROPIC_API_KEY` (console.anthropic.com)
 3. `npm start` → http://localhost:3000
 
 ## Collections
-`users`, `offers`, `businesses`, `leads`, `blocklists` (voir l'ERD)
+`users`, `offers`, `businesses`, `leads`, `blocklists`, `purchases` : voir le schéma `docs/ERD-AIDY.drawio` (s'ouvre sur https://app.diagrams.net).
 
 ## Routes
 | Méthode | Route | Protégée | Rôle |
@@ -42,6 +42,8 @@ API Express + MongoDB Atlas. Le JWT est stocké dans un cookie httpOnly.
 | POST | /api/leads/:id/reply/sent | oui | la réponse a été envoyée (ajoutée à la conversation) |
 | GET | /api/profile | oui | ma fiche infos (prix, délais, liens…) |
 | PUT | /api/profile | oui | modifier ma fiche infos |
+| GET | /api/packs | oui | les packs + mes crédits + mon historique d'achats |
+| POST | /api/packs/:id/buy | oui | acheter un pack `standard`, `premium` ou `recharge` (paiement de démonstration) |
 | GET | /api/blocklist | oui | mes commerces bloqués |
 | DELETE | /api/blocklist/:id | oui | débloquer un commerce |
 | GET | /api/offers/:id/leads | oui | prospects de l'offre avec le commerce (`?status=toContact`) |
@@ -63,16 +65,17 @@ Si l'offre a un `customCriterion` (critère libre), l'IA indique aussi si le com
 - **Statuts** : `toContact` → `contacted` → `interested` → `client` (ou `rejected`).
 - **Envoi en un clic** : `GET /api/leads/:id` renvoie `links` (WhatsApp avec le message déjà écrit, email avec objet et texte, profil Instagram, téléphone) et `nextMessage` (premier message ou relance).
 - **Relances** : après le premier contact, relance à J+3 puis à J+7 (`followUpAt`). Le plan du jour les affiche quand elles sont dues.
-- **Limite par jour** : `dailyLimit` de l'offre (20 par défaut) pour ne pas être bloqué par WhatsApp ou les messageries. `?force=true` pour la dépasser.
+- **Limite par jour** : `dailyLimit` de l'offre (60 par défaut) pour ne pas être bloqué par WhatsApp ou les messageries. `?force=true` pour la dépasser.
 - **Argent** : `price` et `currency` de l'offre ; `dealValue` du prospect (par défaut le prix de l'offre quand il devient client).
 - **Ne plus contacter** : un commerce bloqué n'est plus jamais proposé, ni dans les recherches, ni dans le plan du jour.
-- **Plusieurs villes** : `targetCities` (max 10, et villes x catégories <= 20 recherches).
+- **Plusieurs villes** : `targetCities` (max 10, et villes x catégories <= 20 recherches). Sans ville (ou « toutes les villes »), la recherche se fait dans tout le pays.
 
 ## Essai gratuit et prospects verrouillés
 - Un nouveau compte a **1 recherche gratuite** (1 ville, 1 catégorie) et **5 crédits**.
 - Les prospects trouvés sont **verrouillés** : le serveur ne renvoie que la catégorie, la ville, la note Google, le score, les problèmes repérés et `hasMobile` / `hasEmail` / `hasInstagram`. Jamais le nom, l'adresse ni les contacts.
 - **Débloquer** un prospect coûte 1 crédit et AIDY écrit son message.
-- Plus de crédits ou de recherche gratuite : réponse **402** (packs payants à venir). Un compte `admin` n'a pas de limite.
+- Plus de crédits ou de recherche gratuite : réponse **402**, l'utilisateur achète un pack. Un compte `admin` n'a pas de limite.
+- La recherche gratuite n'est consommée que si elle trouve des commerces, et les commerces sans aucun problème lié à l'offre sont cachés (ils n'ont pas besoin du vendeur).
 
 ## Numéros fixes
 Par défaut, seuls les portables sont gardés (WhatsApp possible). Avec `includeLandlines: true` dans l'offre, les fixes sont aussi montrés, avec un lien pour appeler.
@@ -83,3 +86,25 @@ Par défaut, seuls les portables sont gardés (WhatsApp possible). Avec `include
 3. AIDY la classe : 🟢 `interested`, ❓ `question`, 📅 `meeting`, 🔴 `notInterested`, ⛔ `stop`, met à jour le statut (STOP → liste « ne plus contacter ») et écrit la réponse **avec seulement les infos de la fiche** (rien d'inventé), dans la langue du prospect.
 4. `GET /api/dashboard/inbox` liste ceux qui attendent une réponse : rendez-vous, puis questions, puis intéressés.
 5. Les montants des clients gardent un **historique** (`dealHistory`).
+
+## Packs (paiement unique, pas d'abonnement)
+1 crédit = 1 commerce débloqué avec son message AIDY. Les crédits n'expirent pas, et les commerces débloqués restent visibles même à 0 crédit.
+
+| Pack | Prix | Crédits | Recherches | Assistant de réponse |
+|---|---|---|---|---|
+| Gratuit (à l'inscription) | 0 € | 5 | 1 | non |
+| Standard | 29 € | 60 | illimitées | non |
+| Premium | 49 € | 120 | illimitées | oui |
+| Recharge | 17 € | 30 | illimitées | garde la formule actuelle |
+
+- La **Recharge** n'est possible qu'après un premier pack (sinon **400**). Un Premium qui achète une recharge reste Premium.
+- Chaque achat est enregistré dans la collection `purchases` (historique affiché dans l'app).
+- Le paiement est pour l'instant **de démonstration** (`demo: true`) : les crédits sont ajoutés sans carte bancaire. Le vrai paiement (Stripe) viendra ensuite : il appellera la même logique une fois le paiement validé.
+
+## Anti-abus de l'essai gratuit
+Pour éviter qu'une personne crée plein de comptes pour avoir 5 commerces gratuits à chaque fois (`lib/antiAbuse.js`) :
+- **Emails jetables refusés** (yopmail, mailinator, temp-mail… ~90 domaines) : **400** à l'inscription.
+- **Une seule boîte mail = un seul essai** : `jean+2@gmail.com` et `j.ean@gmail.com` sont la même boîte que `jean@gmail.com` (`emailKey`).
+- **2 essais gratuits maximum par connexion internet sur 30 jours** (`FREE_TRIALS_PER_IP` dans le `.env`). L'adresse IP n'est jamais stockée en clair, seulement une empreinte (hash SHA-256).
+- Au-delà, le compte est quand même créé mais **sans les 5 crédits** (`trialGiven: false`) : il peut acheter un pack. Une famille ou une école sur la même connexion n'est donc pas bloquée.
+- En local (localhost) la limite par IP ne s'applique pas, pour pouvoir tester.

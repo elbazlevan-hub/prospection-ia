@@ -1,1055 +1,1237 @@
 {
- "info": {
-  "name": "Prospection IA API",
-  "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
- },
- "variable": [
-  {
-   "key": "baseUrl",
-   "value": "http://127.0.0.1:3000/api"
+  "info": {
+    "name": "Prospection IA API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-  {
-   "key": "offerId",
-   "value": ""
-  },
-  {
-   "key": "leadId",
-   "value": ""
-  },
-  {
-   "key": "blockId",
-   "value": ""
-  }
- ],
- "item": [
-  {
-   "name": "Auth",
-   "item": [
+  "variable": [
     {
-     "name": "Register",
-     "request": {
-      "method": "POST",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/auth/register",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "auth",
-        "register"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Test1234!\",\n  \"language\": \"en\",\n  \"country\": \"GB\"\n}"
-      }
-     }
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000/api"
     },
     {
-     "name": "Login",
-     "request": {
-      "method": "POST",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/auth/login",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "auth",
-        "login"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Test1234!\"\n}"
-      }
-     }
+      "key": "offerId",
+      "value": ""
     },
     {
-     "name": "Me",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/auth/me",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "auth",
-        "me"
-       ]
-      }
-     }
+      "key": "leadId",
+      "value": ""
     },
     {
-     "name": "Logout",
-     "request": {
-      "method": "POST",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/auth/logout",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "auth",
-        "logout"
-       ]
-      }
-     }
-    },
-    {
-     "name": "Register - invalide (400)",
-     "request": {
-      "method": "POST",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/auth/register",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "auth",
-        "register"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"name\": \"a\",\n  \"email\": \"pas-un-email\",\n  \"password\": \"123\"\n}"
-      }
-     }
+      "key": "blockId",
+      "value": ""
     }
-   ]
-  },
-  {
-   "name": "Profile (fiche infos)",
-   "item": [
+  ],
+  "item": [
     {
-     "name": "Get my profile",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/profile",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "profile"
-       ]
-      }
-     }
-    },
-    {
-     "name": "Update my profile",
-     "request": {
-      "method": "PUT",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/profile",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "profile"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"signature\": \"Nyxela\",\n  \"priceInfo\": \"Site vitrine 900 €, site avec réservation en ligne 1 200 €\",\n  \"deliveryTime\": \"7 jours\",\n  \"portfolioUrl\": \"https://example.com/realisations\",\n  \"bookingUrl\": \"https://calendly.com/exemple/15min\",\n  \"guarantees\": \"Modifications illimitées pendant 14 jours\",\n  \"faq\": \"Paiement en une fois. Hébergement et nom de domaine inclus la première année.\"\n}"
-      }
-     }
-    },
-    {
-     "name": "Update my profile - invalide (400)",
-     "request": {
-      "method": "PUT",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/profile",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "profile"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"bookingUrl\": \"calendly\"\n}"
-      }
-     }
-    }
-   ]
-  },
-  {
-   "name": "Offers",
-   "item": [
-    {
-     "name": "Offer templates (par métier)",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/offers/templates",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers",
-        "templates"
-       ]
-      }
-     }
-    },
-    {
-     "name": "Suggest offer with AIDY",
-     "request": {
-      "method": "POST",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/offers/suggest",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers",
-        "suggest"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"text\": \"Je suis photographe, je fais des photos de plats et de salles pour les restaurants qui ont peu de photos ou des photos de mauvaise qualité sur Google.\",\n  \"country\": \"FR\",\n  \"city\": \"Lyon\",\n  \"language\": \"fr\"\n}"
-      }
-     }
-    },
-    {
-     "name": "Suggest offer - invalide (400)",
-     "request": {
-      "method": "POST",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/offers/suggest",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers",
-        "suggest"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"text\": \"photo\",\n  \"country\": \"FRA\"\n}"
-      }
-     }
-    },
-    {
-     "name": "Create offer",
-     "request": {
-      "method": "POST",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/offers",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"title\": \"Site avec réservation en ligne\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"GB\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"socialOnly\",\n    \"siteDown\",\n    \"oldWebsite\",\n    \"whatsappBooking\",\n    \"noOnlineBooking\"\n  ],\n  \"messageLanguage\": \"en\",\n  \"targetCities\": [\n    \"London\",\n    \"Manchester\"\n  ],\n  \"price\": 900,\n  \"currency\": \"GBP\",\n  \"dailyLimit\": 20,\n  \"includeLandlines\": false\n}"
-      }
-     },
-     "event": [
-      {
-       "listen": "test",
-       "script": {
-        "type": "text/javascript",
-        "exec": [
-         "if (pm.response.code === 201) pm.collectionVariables.set('offerId', pm.response.json()._id);"
-        ]
-       }
-      }
-     ]
-    },
-    {
-     "name": "Get my offers",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/offers?sort=-createdAt",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers?sort=-createdAt"
-       ]
-      }
-     },
-     "event": [
-      {
-       "listen": "test",
-       "script": {
-        "type": "text/javascript",
-        "exec": [
-         "// remplit offerId tout seul : l'offre la plus récente",
-         "const offers = pm.response.json();",
-         "if (Array.isArray(offers) && offers.length) {",
-         "  pm.collectionVariables.set('offerId', offers[0]._id);",
-         "  console.log('offerId =', offers[0]._id, '-', offers[0].title);",
-         "}"
-        ]
-       }
-      }
-     ]
-    },
-    {
-     "name": "Get offer by id",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/offers/{{offerId}}",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers",
-        "{{offerId}}"
-       ]
-      }
-     }
-    },
-    {
-     "name": "Update offer (PUT)",
-     "request": {
-      "method": "PUT",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/offers/{{offerId}}",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers",
-        "{{offerId}}"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"title\": \"Site + réservation (modifié)\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"GB\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"socialOnly\",\n    \"siteDown\",\n    \"oldWebsite\",\n    \"whatsappBooking\",\n    \"noOnlineBooking\"\n  ],\n  \"messageLanguage\": \"en\",\n  \"targetCities\": [\n    \"London\"\n  ],\n  \"price\": 900,\n  \"currency\": \"GBP\",\n  \"dailyLimit\": 25,\n  \"includeLandlines\": false\n}"
-      }
-     }
-    },
-    {
-     "name": "Search businesses (Google)",
-     "request": {
-      "method": "POST",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/offers/{{offerId}}/search",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers",
-        "{{offerId}}",
-        "search"
-       ]
-      }
-     }
-    },
-    {
-     "name": "Analyze leads",
-     "request": {
-      "method": "POST",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/offers/{{offerId}}/analyze",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers",
-        "{{offerId}}",
-        "analyze"
-       ]
-      }
-     }
-    },
-    {
-     "name": "Generate AI messages",
-     "event": [
-      {
-       "listen": "test",
-       "script": {
-        "type": "text/javascript",
-        "exec": [
-         "const r = pm.response.json();",
-         "if (r.leads && r.leads.length) pm.collectionVariables.set('leadId', r.leads[0]._id);"
-        ]
-       }
-      }
-     ],
-     "request": {
-      "method": "POST",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/offers/{{offerId}}/messages?limit=5",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers",
-        "{{offerId}}",
-        "messages"
-       ],
-       "query": [
+      "name": "Auth",
+      "item": [
         {
-         "key": "limit",
-         "value": "5"
-        }
-       ]
-      }
-     }
-    },
-    {
-     "name": "Get offer leads",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/offers/{{offerId}}/leads",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers",
-        "{{offerId}}",
-        "leads"
-       ]
-      }
-     },
-     "event": [
-      {
-       "listen": "test",
-       "script": {
-        "type": "text/javascript",
-        "exec": [
-         "// remplit leadId tout seul : le meilleur prospect débloqué qui a un message AIDY",
-         "const leads = pm.response.json();",
-         "if (Array.isArray(leads) && leads.length) {",
-         "  const open = leads.filter(l => !l.locked);",
-         "  const best = open.find(l => l.message && l.status === 'toContact') || open.find(l => l.message) || open[0] || leads[0];",
-         "  pm.collectionVariables.set('leadId', best._id);",
-         "  console.log('leadId =', best._id, '-', best.businessId ? best.businessId.name : '(verrouillé)');",
-         "  console.log('verrouillés :', leads.filter(l => l.locked).length, '/ débloqués :', open.length);",
-         "}"
-        ]
-       }
-      }
-     ]
-    },
-    {
-     "name": "Unlock best leads (+ messages AIDY)",
-     "request": {
-      "method": "POST",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/offers/{{offerId}}/unlock",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers",
-        "{{offerId}}",
-        "unlock"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"count\": 5\n}"
-      }
-     },
-     "event": [
-      {
-       "listen": "test",
-       "script": {
-        "type": "text/javascript",
-        "exec": [
-         "const r = pm.response.json();",
-         "if (r.leads && r.leads.length) { pm.collectionVariables.set('leadId', r.leads[0]._id); console.log('leadId =', r.leads[0]._id); }"
-        ]
-       }
-      }
-     ]
-    },
-    {
-     "name": "Export leads (CSV)",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/offers/{{offerId}}/export",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers",
-        "{{offerId}}",
-        "export"
-       ]
-      }
-     }
-    },
-    {
-     "name": "Export contacts only (CSV)",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/offers/{{offerId}}/export?contacts=true",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers",
-        "{{offerId}}",
-        "export"
-       ],
-       "query": [
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Test1234!\",\n  \"language\": \"en\",\n  \"country\": \"GB\"\n}"
+            }
+          }
+        },
         {
-         "key": "contacts",
-         "value": "true"
-        }
-       ]
-      }
-     }
-    },
-    {
-     "name": "Delete offer",
-     "request": {
-      "method": "DELETE",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/offers/{{offerId}}",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers",
-        "{{offerId}}"
-       ]
-      }
-     }
-    },
-    {
-     "name": "Create offer - invalide (400)",
-     "request": {
-      "method": "POST",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/offers",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "offers"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"title\": \"Si\",\n  \"targetCategories\": [],\n  \"targetCountry\": \"XYZ\",\n  \"criteria\": [\n    \"foo\"\n  ],\n  \"price\": -5,\n  \"currency\": \"BTC\"\n}"
-      }
-     }
-    }
-   ]
-  },
-  {
-   "name": "Leads",
-   "item": [
-    {
-     "name": "Get lead",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/leads/{{leadId}}",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "leads",
-        "{{leadId}}"
-       ]
-      }
-     }
-    },
-    {
-     "name": "Unlock lead (1 crédit)",
-     "request": {
-      "method": "POST",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/leads/{{leadId}}/unlock",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "leads",
-        "{{leadId}}",
-        "unlock"
-       ]
-      }
-     }
-    },
-    {
-     "name": "Regenerate lead message",
-     "request": {
-      "method": "POST",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/leads/{{leadId}}/message",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "leads",
-        "{{leadId}}",
-        "message"
-       ]
-      }
-     }
-    },
-    {
-     "name": "Update lead (status / notes / dealValue)",
-     "request": {
-      "method": "PATCH",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/leads/{{leadId}}",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "leads",
-        "{{leadId}}"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"status\": \"interested\",\n  \"notes\": \"A répondu sur WhatsApp, rappeler jeudi\"\n}"
-      }
-     }
-    },
-    {
-     "name": "Mark as client",
-     "request": {
-      "method": "PATCH",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/leads/{{leadId}}",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "leads",
-        "{{leadId}}"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"status\": \"client\",\n  \"dealValue\": 900\n}"
-      }
-     }
-    },
-    {
-     "name": "Mark contacted (message sent)",
-     "request": {
-      "method": "POST",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/leads/{{leadId}}/contact",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "leads",
-        "{{leadId}}",
-        "contact"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"channel\": \"whatsapp\"\n}"
-      }
-     }
-    },
-    {
-     "name": "Mark contacted - invalide (400)",
-     "request": {
-      "method": "POST",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/leads/{{leadId}}/contact",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "leads",
-        "{{leadId}}",
-        "contact"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"channel\": \"fax\"\n}"
-      }
-     }
-    },
-    {
-     "name": "Block lead (ne plus contacter)",
-     "request": {
-      "method": "POST",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/leads/{{leadId}}/block",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "leads",
-        "{{leadId}}",
-        "block"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"reason\": \"A répondu STOP\"\n}"
-      }
-     },
-     "event": [
-      {
-       "listen": "test",
-       "script": {
-        "type": "text/javascript",
-        "exec": [
-         "if (pm.response.code === 201) pm.collectionVariables.set('blockId', pm.response.json().blocked._id);"
-        ]
-       }
-      }
-     ]
-    },
-    {
-     "name": "Reply assistant AIDY (Premium)",
-     "request": {
-      "method": "POST",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/leads/{{leadId}}/reply",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "leads",
-        "{{leadId}}",
-        "reply"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"text\": \"Bonjour, merci pour votre message. C'est combien pour un site avec réservation ? Et vous pouvez le faire en combien de temps ?\"\n}"
-      }
-     }
-    },
-    {
-     "name": "Reply assistant - STOP",
-     "request": {
-      "method": "POST",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/leads/{{leadId}}/reply",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "leads",
-        "{{leadId}}",
-        "reply"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{\n  \"text\": \"STOP, ne me contactez plus.\"\n}"
-      }
-     }
-    },
-    {
-     "name": "Reply sent",
-     "request": {
-      "method": "POST",
-      "header": [
-       {
-        "key": "Content-Type",
-        "value": "application/json"
-       }
-      ],
-      "url": {
-       "raw": "{{baseUrl}}/leads/{{leadId}}/reply/sent",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "leads",
-        "{{leadId}}",
-        "reply",
-        "sent"
-       ]
-      },
-      "body": {
-       "mode": "raw",
-       "raw": "{}"
-      }
-     }
-    }
-   ]
-  },
-  {
-   "name": "Dashboard",
-   "item": [
-    {
-     "name": "Today plan (all offers)",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/dashboard/today",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "dashboard",
-        "today"
-       ]
-      }
-     }
-    },
-    {
-     "name": "Today plan (one offer)",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/dashboard/today?offerId={{offerId}}",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "dashboard",
-        "today"
-       ],
-       "query": [
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Test1234!\"\n}"
+            }
+          }
+        },
         {
-         "key": "offerId",
-         "value": "{{offerId}}"
-        }
-       ]
-      }
-     }
-    },
-    {
-     "name": "Stats (all offers)",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/dashboard/stats",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "dashboard",
-        "stats"
-       ]
-      }
-     }
-    },
-    {
-     "name": "Stats (one offer)",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/dashboard/stats?offerId={{offerId}}",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "dashboard",
-        "stats"
-       ],
-       "query": [
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
         {
-         "key": "offerId",
-         "value": "{{offerId}}"
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Register - invalide (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"a\",\n  \"email\": \"pas-un-email\",\n  \"password\": \"123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register - email jetable (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test\",\n  \"email\": \"test@yopmail.com\",\n  \"password\": \"Test1234!\"\n}"
+            }
+          }
         }
-       ]
-      }
-     }
+      ]
     },
     {
-     "name": "Inbox (à répondre)",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/dashboard/inbox",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "dashboard",
-        "inbox"
-       ]
-      }
-     }
-    }
-   ]
-  },
-  {
-   "name": "Blocklist",
-   "item": [
-    {
-     "name": "Get my blocklist",
-     "request": {
-      "method": "GET",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/blocklist",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "blocklist"
-       ]
-      }
-     }
+      "name": "Profile (fiche infos)",
+      "item": [
+        {
+          "name": "Get my profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update my profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"signature\": \"Nyxela\",\n  \"priceInfo\": \"Site vitrine 900 €, site avec réservation en ligne 1 200 €\",\n  \"deliveryTime\": \"7 jours\",\n  \"portfolioUrl\": \"https://example.com/realisations\",\n  \"bookingUrl\": \"https://calendly.com/exemple/15min\",\n  \"guarantees\": \"Modifications illimitées pendant 14 jours\",\n  \"faq\": \"Paiement en une fois. Hébergement et nom de domaine inclus la première année.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update my profile - invalide (400)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingUrl\": \"calendly\"\n}"
+            }
+          }
+        }
+      ]
     },
     {
-     "name": "Unblock",
-     "request": {
-      "method": "DELETE",
-      "header": [],
-      "url": {
-       "raw": "{{baseUrl}}/blocklist/{{blockId}}",
-       "host": [
-        "{{baseUrl}}"
-       ],
-       "path": [
-        "blocklist",
-        "{{blockId}}"
-       ]
-      }
-     }
+      "name": "Offers",
+      "item": [
+        {
+          "name": "Offer templates (par métier)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/templates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "templates"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Suggest offer with AIDY",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/offers/suggest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "suggest"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Je suis photographe, je fais des photos de plats et de salles pour les restaurants qui ont peu de photos ou des photos de mauvaise qualité sur Google.\",\n  \"country\": \"FR\",\n  \"city\": \"Lyon\",\n  \"language\": \"fr\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Suggest offer - invalide (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/offers/suggest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "suggest"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"photo\",\n  \"country\": \"FRA\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create offer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/offers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Site avec réservation en ligne\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"GB\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"socialOnly\",\n    \"siteDown\",\n    \"oldWebsite\",\n    \"whatsappBooking\",\n    \"noOnlineBooking\"\n  ],\n  \"messageLanguage\": \"en\",\n  \"targetCities\": [\n    \"London\",\n    \"Manchester\"\n  ],\n  \"price\": 900,\n  \"currency\": \"GBP\",\n  \"dailyLimit\": 20,\n  \"includeLandlines\": false\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) pm.collectionVariables.set('offerId', pm.response.json()._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get my offers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers?sort=-createdAt",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers?sort=-createdAt"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// remplit offerId tout seul : l'offre la plus récente",
+                  "const offers = pm.response.json();",
+                  "if (Array.isArray(offers) && offers.length) {",
+                  "  pm.collectionVariables.set('offerId', offers[0]._id);",
+                  "  console.log('offerId =', offers[0]._id, '-', offers[0].title);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get offer by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update offer (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Site + réservation (modifié)\",\n  \"description\": \"Site moderne + prise de rendez-vous directement sur le site\",\n  \"serviceType\": \"site\",\n  \"targetCategories\": [\n    \"barber\",\n    \"nail salon\"\n  ],\n  \"targetCountry\": \"GB\",\n  \"criteria\": [\n    \"noWebsite\",\n    \"socialOnly\",\n    \"siteDown\",\n    \"oldWebsite\",\n    \"whatsappBooking\",\n    \"noOnlineBooking\"\n  ],\n  \"messageLanguage\": \"en\",\n  \"targetCities\": [\n    \"London\"\n  ],\n  \"price\": 900,\n  \"currency\": \"GBP\",\n  \"dailyLimit\": 25,\n  \"includeLandlines\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "Search businesses (Google)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}/search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}",
+                "search"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Analyze leads",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}/analyze",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}",
+                "analyze"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate AI messages",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.leads && r.leads.length) pm.collectionVariables.set('leadId', r.leads[0]._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}/messages?limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}",
+                "messages"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get offer leads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}/leads",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}",
+                "leads"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// remplit leadId tout seul : le meilleur prospect débloqué qui a un message AIDY",
+                  "const leads = pm.response.json();",
+                  "if (Array.isArray(leads) && leads.length) {",
+                  "  const open = leads.filter(l => !l.locked);",
+                  "  const best = open.find(l => l.message && l.status === 'toContact') || open.find(l => l.message) || open[0] || leads[0];",
+                  "  pm.collectionVariables.set('leadId', best._id);",
+                  "  console.log('leadId =', best._id, '-', best.businessId ? best.businessId.name : '(verrouillé)');",
+                  "  console.log('verrouillés :', leads.filter(l => l.locked).length, '/ débloqués :', open.length);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unlock best leads (+ messages AIDY)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}/unlock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}",
+                "unlock"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"count\": 5\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.leads && r.leads.length) { pm.collectionVariables.set('leadId', r.leads[0]._id); console.log('leadId =', r.leads[0]._id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Export leads (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}/export",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}",
+                "export"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Export contacts only (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}/export?contacts=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}",
+                "export"
+              ],
+              "query": [
+                {
+                  "key": "contacts",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete offer",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers",
+                "{{offerId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create offer - invalide (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/offers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "offers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Si\",\n  \"targetCategories\": [],\n  \"targetCountry\": \"XYZ\",\n  \"criteria\": [\n    \"foo\"\n  ],\n  \"price\": -5,\n  \"currency\": \"BTC\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leads",
+      "item": [
+        {
+          "name": "Get lead",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unlock lead (1 crédit)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}/unlock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}",
+                "unlock"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Regenerate lead message",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}/message",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}",
+                "message"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update lead (status / notes / dealValue)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"interested\",\n  \"notes\": \"A répondu sur WhatsApp, rappeler jeudi\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Mark as client",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"client\",\n  \"dealValue\": 900\n}"
+            }
+          }
+        },
+        {
+          "name": "Mark contacted (message sent)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}/contact",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}",
+                "contact"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channel\": \"whatsapp\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Mark contacted - invalide (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}/contact",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}",
+                "contact"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channel\": \"fax\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Block lead (ne plus contacter)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}/block",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}",
+                "block"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"A répondu STOP\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) pm.collectionVariables.set('blockId', pm.response.json().blocked._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reply assistant AIDY (Premium)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}/reply",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}",
+                "reply"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Bonjour, merci pour votre message. C'est combien pour un site avec réservation ? Et vous pouvez le faire en combien de temps ?\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reply assistant - STOP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}/reply",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}",
+                "reply"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"STOP, ne me contactez plus.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reply sent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/leads/{{leadId}}/reply/sent",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leads",
+                "{{leadId}}",
+                "reply",
+                "sent"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Today plan (all offers)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/today",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "today"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Today plan (one offer)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/today?offerId={{offerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "today"
+              ],
+              "query": [
+                {
+                  "key": "offerId",
+                  "value": "{{offerId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Stats (all offers)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Stats (one offer)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/stats?offerId={{offerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "offerId",
+                  "value": "{{offerId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Inbox (à répondre)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/inbox",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "inbox"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Blocklist",
+      "item": [
+        {
+          "name": "Get my blocklist",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blocklist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blocklist"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unblock",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blocklist/{{blockId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blocklist",
+                "{{blockId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Packs",
+      "item": [
+        {
+          "name": "Get packs (+ mes crédits et mes achats)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/packs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "packs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buy Recharge sans pack (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/packs/recharge/buy",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "packs",
+                "recharge",
+                "buy"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Buy Standard (demo) - 29 €",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/packs/standard/buy",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "packs",
+                "standard",
+                "buy"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Buy Premium (demo) - 49 €",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/packs/premium/buy",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "packs",
+                "premium",
+                "buy"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Buy Recharge (demo) - 17 €",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/packs/recharge/buy",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "packs",
+                "recharge",
+                "buy"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Buy unknown pack (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/packs/gold/buy",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "packs",
+                "gold",
+                "buy"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        }
+      ]
     }
-   ]
-  }
- ]
+  ]
 }
