@@ -31,7 +31,8 @@ const businessSchema = new mongoose.Schema(
       outdatedSignals: [String], // noHttps, notMobile, oldCopyright, oldTech, siteDown
       isOutdated: Boolean,
       whatsappBooking: Boolean, // lien WhatsApp pour réserver / commander
-      onlineBooking: Boolean,   // outil de réservation en ligne détecté
+      onlineBooking: Boolean,   // outil de réservation ou de commande en ligne détecté
+      deliveryPlatforms: [String], // Wolt, Uber Eats, 10bis... (la commande en ligne existe déjà)
       hasSocialLinks: Boolean,
     },
     analyzedAt: Date,

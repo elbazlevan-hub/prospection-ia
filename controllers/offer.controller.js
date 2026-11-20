@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import Offer from "../models/offer.model.js";
 import Lead from "../models/lead.model.js";
 import User, { senderNameOf } from "../models/user.model.js";
-import { OFFER_TEMPLATES } from "../lib/templates.js";
+import { templatesIn } from "../lib/templates.js";
 import { suggestOffer } from "../lib/offerSuggester.js";
 import { unlockLeads, withLinks } from "./lead.controller.js";
 
@@ -80,9 +80,9 @@ export async function deleteOffer(req, res) {
   res.status(204).send();
 }
 
-// GET /api/offers/templates  -> modèles d'offres par métier
+// GET /api/offers/templates?lang=fr  -> les modèles dans la langue de l'app
 export function getTemplates(req, res) {
-  res.status(200).json(OFFER_TEMPLATES);
+  res.status(200).json(templatesIn(String(req.query.lang || "en")));
 }
 
 // POST /api/offers/suggest  { text, country?, city?, language? }
