@@ -14,7 +14,8 @@ export const offerSchema = z
     targetCountry: z.string().trim().length(2, "targetCountry = ISO code (US, FR, GB...)"),
     targetCities: z.array(z.string().trim().min(2)).max(10, "max 10 cities").optional(),
     targetCity: z.string().trim().min(2).optional(), // ancien format (1 ville), encore accepté
-    criteria: z.array(z.enum(CRITERIA)).min(1, "choose at least one criterion"),
+    criteria: z.array(z.enum(CRITERIA)).default([]), // facultatif : vide = tous les commerces du type
+    sellingPoint: z.string().trim().max(300, "max 300 characters").optional(),
     messageLanguage: z.string().trim().length(2, "messageLanguage = 2 letters (en, fr, es...)"),
     customCriterion: z.string().trim().min(5, "customCriterion is too short").max(300).optional(),
     price: z.number().min(0, "price must be positive").max(1_000_000).default(0),

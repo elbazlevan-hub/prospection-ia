@@ -23,7 +23,8 @@ const offerSchema = new mongoose.Schema(
     targetCountry: { type: String, required: true, uppercase: true },   // code ISO : US, FR, GB...
     targetCities: { type: [String], default: [] },                      // une ou plusieurs villes
     targetCity: { type: String, trim: true },                           // ancien champ (1 seule ville), gardé pour les anciennes offres
-    criteria: { type: [String], enum: CRITERIA, required: true },       // problèmes recherchés
+    criteria: { type: [String], enum: CRITERIA, default: [] },          // problèmes recherchés (vide = tous les commerces du type)
+    sellingPoint: { type: String, trim: true },                         // l'avantage du vendeur, ex. "moins cher, en gros, livré dans toute la France"
     messageLanguage: { type: String, required: true, lowercase: true }, // en, fr, es...
     customCriterion: { type: String, trim: true }, // critère libre jugé par l'IA, ex. "restaurants qui semblent avoir besoin d'un service de nettoyage"
     price: { type: Number, min: 0, default: 0 },                        // prix du service (paiement unique)
