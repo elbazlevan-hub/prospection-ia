@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 export const LEAD_STATUS = ["toContact", "contacted", "interested", "client", "rejected"];
-export const CHANNELS = ["whatsapp", "email", "instagram", "phone", "other"];
+export const CHANNELS = ["whatsapp", "sms", "email", "instagram", "phone", "other"];
 
 // le lien entre UNE offre et UN commerce : score, message IA et suivi
 const leadSchema = new mongoose.Schema(
