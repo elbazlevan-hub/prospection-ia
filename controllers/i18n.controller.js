@@ -27,11 +27,20 @@ export async function getTranslation(req, res) {
   const raw = JSON.stringify(source || "");
   if (!source || typeof source !== "object" || raw.length > MAX_SOURCE) return res.status(400).json({ message: "Invalid source texts" });
 
+  const { dict, created } = await translationFor(lang, name, source);
+  res.status(created ? 201 : 200).json({ lang, hash: hashOfSource(source), dict });
+}
+
+// la traduction d'une langue pour ces textes anglais : en base si elle existe,
+// sinon l'IA traduit seulement ce qui a changé depuis la dernière traduction de cette langue
+export async function translationFor(lang, name, source) {
   const hash = hashOfSource(source);
   const cached = await Translation.findOne({ lang, hash });
-  if (cached) return res.status(200).json({ lang, hash, dict: cached.dict });
+  if (cached) return { dict: cached.dict, created: false, translated: 0 };
 
-  const dict = await translateDict(source, name);
-  await Translation.updateOne({ lang, hash }, { $set: { dict } }, { upsert: true });
-  res.status(201).json({ lang, hash, dict });
+  const previous = await Translation.findOne({ lang, source: { $exists: true } }).sort({ updatedAt: -1 });
+  const { dict, translated, reused } = await translateDict(source, name, previous);
+  await Translation.updateOne({ lang, hash }, { $set: { dict, source } }, { upsert: true });
+  await Translation.deleteMany({ lang, hash: { $ne: hash } }); // les anciennes versions ne servent plus
+  return { dict, created: true, translated, reused };
 }

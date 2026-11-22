@@ -6,6 +6,7 @@ const translationSchema = new mongoose.Schema(
     lang: { type: String, required: true },   // code de langue : de, he, ar, pt-BR...
     hash: { type: String, required: true },   // empreinte des textes anglais traduits (nouvelle traduction s'ils changent)
     dict: { type: mongoose.Schema.Types.Mixed, required: true },
+    source: { type: mongoose.Schema.Types.Mixed }, // les textes anglais traduits : pour ne retraduire que ce qui a changé
   },
   { timestamps: true }
 );

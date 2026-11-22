@@ -6,7 +6,7 @@ import { analyzeReply } from "../lib/replyAssistant.js";
 import Blocklist, { blockedSetOf, isBlocked } from "../models/blocklist.model.js";
 import { sendLinks, followUpMessage, nextFollowUp, startOfToday, MAX_FOLLOW_UPS } from "../lib/outreach.js";
 import { isLocked, publicLead, canContact } from "../lib/locking.js";
-import { generateFor } from "./message.controller.js";
+import { generateFor, runInParallel } from "./message.controller.js";
 
 function checkId(id, res) {
   if (!mongoose.isValidObjectId(id)) {
@@ -75,15 +75,12 @@ export async function unlockLeads(leads, offer, user, writeMessages = true) {
   let messageErrors = 0;
   if (writeMessages) {
     const allLeads = await Lead.find({ offerId: offer._id, userId: user._id }).populate("businessId");
-    for (const lead of chosen) {
-      if (lead.message || !(lead.score > 0)) continue;
-      try {
-        await generateFor(lead, offer, allLeads, senderNameOf(user), user.sellerProfile || {});
-      } catch (err) {
-        console.error("Message generation failed:", err.message);
-        messageErrors++;
-      }
-    }
+    const toWrite = chosen.filter((lead) => !lead.message && lead.score > 0);
+    // plusieurs messages écrits en même temps (plus rapide quand on débloque tout)
+    const { errors } = await runInParallel(toWrite, (lead) =>
+      generateFor(lead, offer, allLeads, senderNameOf(user), user.sellerProfile || {})
+    );
+    messageErrors = errors.length;
   }
   return { unlocked: chosen, credits: user.credits, messageErrors };
 }
