@@ -104,7 +104,7 @@ export async function unlockLead(req, res) {
     return res.status(400).json({ message: "Run the analysis first: AIDY needs to know this business's problems" });
   }
   if (!canContact(lead.businessId, offer)) {
-    return res.status(400).json({ message: "This business has no mobile number: it can't be contacted" });
+    return res.status(400).json({ message: "This business has no phone, email or Instagram: it can't be contacted" });
   }
   const result = await unlockLeads([lead], offer, user, req.query.message !== "false");
   res.status(200).json({
@@ -120,6 +120,18 @@ export async function getLead(req, res) {
   if (!lead) return;
   const offer = await Offer.findById(lead.offerId);
   const user = await User.findById(req.userId);
+
+  // ancien prospect débloqué sans aucun contact : il sort de la liste, et le crédit est rendu
+  if (!isLocked(lead) && lead.status === "toContact" && !canContact(lead.businessId, offer)) {
+    lead.status = "rejected";
+    if (lead.unlockedAt && !lead.refundedAt && user.role !== "admin") {
+      lead.refundedAt = new Date();
+      user.credits += 1;
+      await user.save();
+    }
+    await lead.save();
+    return res.status(200).json({ ...withLinks(lead, offer, senderNameOf(user)), unreachable: true });
+  }
   res.status(200).json(withLinks(lead, offer, senderNameOf(user)));
 }
 

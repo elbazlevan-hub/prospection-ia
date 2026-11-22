@@ -146,7 +146,7 @@ export async function getOfferLeads(req, res) {
     .populate("businessId") // remplace l'id par le document du commerce
     .sort({ score: -1, createdAt: -1 });
 
-  // cachés : les commerces sans problème lié à l'offre, et ceux sans numéro de portable (ou de fixe si l'offre l'autorise)
+  // cachés : les commerces sans problème lié à l'offre, et ceux sans aucun contact (ni portable, ni email, ni Instagram)
   const useful =
     req.query.all === "true"
       ? leads

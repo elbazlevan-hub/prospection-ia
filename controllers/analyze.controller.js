@@ -5,6 +5,7 @@ import Lead from "../models/lead.model.js";
 import { analyzeWebsite } from "../lib/analyzeWebsite.js";
 import { scoreBusiness } from "../lib/scoring.js";
 import { isMobile, landlineOf } from "../lib/phone.js";
+import { canContact, isLocked } from "../lib/locking.js";
 
 const CACHE_DAYS = 7;       // un commerce analysé il y a moins de 7 jours n'est pas ré-analysé
 const PARALLEL = 6;         // nombre de sites visités en même temps
@@ -31,7 +32,7 @@ export async function analyzeLeads(req, res) {
   const offer = await Offer.findOne({ _id: req.params.id, userId: req.userId });
   if (!offer) return res.status(404).json({ message: "Offer not found" });
 
-  const leads = await Lead.find({ offerId: offer._id, userId: req.userId }).populate("businessId");
+  let leads = await Lead.find({ offerId: offer._id, userId: req.userId }).populate("businessId");
   if (leads.length === 0) {
     return res.status(200).json({ message: "No leads yet: run the search first", leads: 0 });
   }
@@ -58,7 +59,17 @@ export async function analyzeLeads(req, res) {
     await business.save();
   });
 
-  // 2) calculer le score de chaque prospect selon les critères de l'offre
+  // 2) les commerces encore verrouillés sans AUCUN contact (ni portable, ni email, ni Instagram, même après la visite de leur site)
+  //    sont supprimés : AIDY ne propose que des commerces qu'on peut vraiment contacter
+  const unreachable = leads.filter((l) => l.businessId && isLocked(l) && !canContact(l.businessId, offer));
+  if (unreachable.length) await Lead.deleteMany({ _id: { $in: unreachable.map((l) => l._id) } });
+  const removed = new Set(unreachable.map((l) => String(l._id)));
+  leads = leads.filter((l) => !removed.has(String(l._id)));
+  if (leads.length === 0) {
+    return res.status(200).json({ leads: 0, removedNoPhone: removed.size, hot: 0, warm: 0, cold: 0, reasons: {} });
+  }
+
+  // 3) calculer le score de chaque prospect selon les critères de l'offre
   const stats = { hot: 0, warm: 0, cold: 0 };
   const reasonsCount = {};
 
@@ -81,6 +92,7 @@ export async function analyzeLeads(req, res) {
 
   res.status(200).json({
     leads: leads.length,
+    removedNoPhone: removed.size, // commerces retirés car sans aucun contact
     withEmail,      // prospects dont on a trouvé l'email
     withInstagram,  // prospects dont on a trouvé l'Instagram
     withMobile,     // prospects dont on a un numéro de portable
