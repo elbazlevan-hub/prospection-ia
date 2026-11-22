@@ -22,6 +22,8 @@ const userSchema = new mongoose.Schema(
     // fiche infos du vendeur : AIDY s'en sert pour répondre aux prospects (sans rien inventer)
     sellerProfile: {
       signature: { type: String, trim: true },     // nom affiché en bas des messages (ex. "Nyxela")
+      // comment le vendeur préfère continuer avec le commerce : par message, par appel, ou les deux
+      contactPreference: { type: String, enum: ["message", "call", "either"], default: "message" },
       priceInfo: { type: String, trim: true },     // ex. "Site vitrine 900 €, avec réservation 1 200 €"
       deliveryTime: { type: String, trim: true },  // ex. "7 jours"
       portfolioUrl: { type: String, trim: true },  // exemples de réalisations

@@ -6,6 +6,7 @@ const url = z.string().trim().url("must be a full link (https://...)").max(300).
 // PUT /api/profile : la fiche infos du vendeur
 export const sellerProfileSchema = z.object({
   signature: text(60),
+  contactPreference: z.enum(["message", "call", "either"]).optional(),
   priceInfo: text(500),
   deliveryTime: text(200),
   portfolioUrl: url,

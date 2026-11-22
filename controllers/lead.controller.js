@@ -78,7 +78,7 @@ export async function unlockLeads(leads, offer, user, writeMessages = true) {
     for (const lead of chosen) {
       if (lead.message || !(lead.score > 0)) continue;
       try {
-        await generateFor(lead, offer, allLeads, senderNameOf(user));
+        await generateFor(lead, offer, allLeads, senderNameOf(user), user.sellerProfile?.contactPreference);
       } catch (err) {
         console.error("Message generation failed:", err.message);
         messageErrors++;

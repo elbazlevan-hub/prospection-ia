@@ -42,7 +42,7 @@ async function reviewsOf(business, language) {
 }
 
 // écrit et enregistre le message d'un lead
-export async function generateFor(lead, offer, allLeads, senderName) {
+export async function generateFor(lead, offer, allLeads, senderName, contactPreference) {
   const business = lead.businessId;
   const reviews = await reviewsOf(business, offer.messageLanguage);
   const result = await writeMessage({
@@ -52,6 +52,7 @@ export async function generateFor(lead, offer, allLeads, senderName) {
     reviews: reviews.map((r) => ({ rating: r.rating, text: r.text })),
     competitors: competitorsOf(business, allLeads),
     senderName,
+    contactPreference,
   });
 
   lead.message = result.message;
@@ -109,7 +110,7 @@ export async function generateOfferMessages(req, res) {
   }
 
   const user = await User.findById(req.userId);
-  const { errors, done } = await runInParallel(toWrite, (lead) => generateFor(lead, offer, allLeads, senderNameOf(user)));
+  const { errors, done } = await runInParallel(toWrite, (lead) => generateFor(lead, offer, allLeads, senderNameOf(user), user.sellerProfile?.contactPreference));
 
   // si toutes les écritures ont échoué (ex. clé IA invalide), on renvoie l'erreur
   if (errors.length === toWrite.length) throw errors[0];
@@ -138,6 +139,6 @@ export async function regenerateLeadMessage(req, res) {
   const allLeads = await Lead.find({ offerId: lead.offerId, userId: req.userId }).populate("businessId");
   const user = await User.findById(req.userId);
 
-  await generateFor(lead, offer, allLeads, senderNameOf(user));
+  await generateFor(lead, offer, allLeads, senderNameOf(user), user.sellerProfile?.contactPreference);
   res.status(200).json(withLinks(lead, offer, senderNameOf(user)));
 }
