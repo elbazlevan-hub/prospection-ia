@@ -5,6 +5,7 @@ import User, { senderNameOf } from "../models/user.model.js";
 import { templatesIn } from "../lib/templates.js";
 import { suggestOffer } from "../lib/offerSuggester.js";
 import { unlockLeads, withLinks } from "./lead.controller.js";
+import { canContact } from "../lib/locking.js";
 
 // ID invalide -> 400 (sinon CastError)
 function checkId(id, res) {
@@ -109,7 +110,7 @@ export async function unlockBest(req, res) {
   const locked = await Lead.find({ offerId: offer._id, userId: req.userId, unlocked: false, score: { $gt: 0 } })
     .populate("businessId")
     .sort({ score: -1, createdAt: -1 })
-    .limit(req.body.count);
+    .then((leads) => leads.filter((l) => canContact(l.businessId, offer)).slice(0, req.body.count)); // seulement les commerces joignables
   if (locked.length === 0) {
     return res.status(200).json({ unlocked: 0, credits: user.credits, message: "No locked lead to unlock (run the analysis first?)" });
   }

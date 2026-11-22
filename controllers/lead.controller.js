@@ -5,7 +5,7 @@ import User, { senderNameOf, isPremium } from "../models/user.model.js";
 import { analyzeReply } from "../lib/replyAssistant.js";
 import Blocklist, { blockedSetOf, isBlocked } from "../models/blocklist.model.js";
 import { sendLinks, followUpMessage, nextFollowUp, startOfToday, MAX_FOLLOW_UPS } from "../lib/outreach.js";
-import { isLocked, publicLead } from "../lib/locking.js";
+import { isLocked, publicLead, canContact } from "../lib/locking.js";
 import { generateFor } from "./message.controller.js";
 
 function checkId(id, res) {
@@ -54,7 +54,7 @@ export function withLinks(lead, offer, senderName) {
 // débloque des prospects (1 crédit chacun) puis AIDY écrit leur message
 // renvoie { unlocked, credits, messageErrors }
 export async function unlockLeads(leads, offer, user, writeMessages = true) {
-  const toUnlock = leads.filter((l) => isLocked(l));
+  const toUnlock = leads.filter((l) => isLocked(l) && canContact(l.businessId, offer)); // jamais de crédit pour un commerce injoignable
   const free = user.role === "admin";
   const count = free ? toUnlock.length : Math.min(toUnlock.length, user.credits);
   const chosen = toUnlock.slice(0, count);
@@ -102,6 +102,9 @@ export async function unlockLead(req, res) {
   // on débloque après l'analyse : sinon on ne sait pas encore quel est son problème
   if (!lead.businessId?.analyzedAt) {
     return res.status(400).json({ message: "Run the analysis first: AIDY needs to know this business's problems" });
+  }
+  if (!canContact(lead.businessId, offer)) {
+    return res.status(400).json({ message: "This business has no mobile number: it can't be contacted" });
   }
   const result = await unlockLeads([lead], offer, user, req.query.message !== "false");
   res.status(200).json({

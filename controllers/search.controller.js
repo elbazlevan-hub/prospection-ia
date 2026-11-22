@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import Offer, { citiesOf } from "../models/offer.model.js";
 import { blockedSetOf, isBlocked } from "../models/blocklist.model.js";
 import User from "../models/user.model.js";
-import { publicLead } from "../lib/locking.js";
+import { publicLead, canContact } from "../lib/locking.js";
 import Business from "../models/business.model.js";
 import Lead from "../models/lead.model.js";
 import { searchPlaces } from "../lib/googlePlaces.js";
@@ -146,7 +146,15 @@ export async function getOfferLeads(req, res) {
     .populate("businessId") // remplace l'id par le document du commerce
     .sort({ score: -1, createdAt: -1 });
 
-  const useful = req.query.all === "true" ? leads : leads.filter((l) => !(l.businessId?.analyzedAt && l.score === 0));
+  // cachés : les commerces sans problème lié à l'offre, et ceux sans numéro de portable (ou de fixe si l'offre l'autorise)
+  const useful =
+    req.query.all === "true"
+      ? leads
+      : leads.filter(
+          (l) =>
+            !(l.businessId?.analyzedAt && l.score === 0) &&
+            (l.status !== "toContact" || canContact(l.businessId, offer))
+        );
 
   // les prospects verrouillés sont masqués (pas de nom, d'adresse ni de contact)
   res.status(200).json(useful.map((l) => publicLead(l, offer)));

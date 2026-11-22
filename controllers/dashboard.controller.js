@@ -5,6 +5,7 @@ import User, { senderNameOf } from "../models/user.model.js";
 import { blockedSetOf, isBlocked } from "../models/blocklist.model.js";
 import { startOfToday, endOfToday, sendLinks } from "../lib/outreach.js";
 import { withLinks } from "./lead.controller.js";
+import { canContact } from "../lib/locking.js";
 
 // ?offerId=... (optionnel) -> filtre sur une offre ; sinon toutes mes offres
 async function scopeOf(req, res) {
@@ -44,6 +45,7 @@ export async function getToday(req, res) {
   const user = await User.findById(req.userId);
   const toCard = (lead) => withLinks(lead, offersById.get(String(lead.offerId)), senderNameOf(user));
   const notBlocked = (lead) => lead.businessId && !isBlocked(lead.businessId, blocked);
+  const reachable = (lead) => canContact(lead.businessId, offersById.get(String(lead.offerId)));
 
   // 1) les relances prévues aujourd'hui (ou en retard), les plus anciennes d'abord
   const dueFollowUps = (
@@ -60,7 +62,7 @@ export async function getToday(req, res) {
       .populate("businessId")
       .sort({ score: -1, createdAt: -1 })
       .limit(remaining + 50)
-  ).filter(notBlocked);
+  ).filter((l) => notBlocked(l) && reachable(l));
   const toContact = ready.slice(0, remaining);
 
   // prospects intéressants mais sans message : il faut lancer la génération IA
