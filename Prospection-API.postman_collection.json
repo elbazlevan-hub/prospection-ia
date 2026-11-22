@@ -162,6 +162,58 @@
               "raw": "{\n  \"name\": \"Test\",\n  \"email\": \"test@yopmail.com\",\n  \"password\": \"Test1234!\"\n}"
             }
           }
+        },
+        {
+          "name": "Forgot password (lien dans le terminal du serveur)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reset password - lien invalide (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"0000000000000000000000000000\",\n  \"password\": \"Nouveau1234!\"\n}"
+            }
+          }
         }
       ]
     },

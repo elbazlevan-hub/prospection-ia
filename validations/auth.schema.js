@@ -21,3 +21,18 @@ export const loginSchema = z.object({
   email: z.string().trim().email("invalid email"),
   password: z.string().min(1, "password is required"),
 });
+
+// mot de passe oublié : on demande un lien par email
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().email("invalid email"),
+});
+
+// nouveau mot de passe avec le lien reçu par email
+export const resetPasswordSchema = z.object({
+  token: z.string().trim().min(20, "invalid link"),
+  password: z
+    .string()
+    .min(8, "password must be at least 8 characters")
+    .regex(/[0-9]/, "password must contain a number")
+    .regex(/[^A-Za-z0-9]/, "password must contain a special character"),
+});

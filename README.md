@@ -17,6 +17,8 @@ API Express + MongoDB Atlas. Le JWT est stocké dans un cookie httpOnly.
 | POST | /api/auth/login | non | connexion, pose le cookie `token` |
 | POST | /api/auth/logout | non | supprime le cookie |
 | GET | /api/auth/me | oui | utilisateur connecté |
+| POST | /api/auth/forgot-password | non | mot de passe oublié : envoie un lien par email (valable 30 min, réponse identique que l'email existe ou non) |
+| POST | /api/auth/reset-password | non | nouveau mot de passe avec le lien (`token`, `password`), puis connexion |
 | GET | /api/offers/templates | oui | modèles d'offres par métier (site, photographe, community manager…) |
 | POST | /api/offers/suggest | oui | AIDY remplit une offre à partir d'une description libre (`text`, `country`, `city`, `language`) |
 | POST | /api/offers | oui | créer une offre |
@@ -44,6 +46,7 @@ API Express + MongoDB Atlas. Le JWT est stocké dans un cookie httpOnly.
 | PUT | /api/profile | oui | modifier ma fiche infos |
 | GET | /api/packs | oui | les packs + mes crédits + mon historique d'achats |
 | POST | /api/packs/:id/buy | oui | acheter un pack `standard`, `premium` ou `recharge` (paiement de démonstration) |
+| POST | /api/i18n/:lang | oui | l'interface traduite dans une langue (`de`, `ar`, `pt-BR`…) — traduite par l'IA la 1re fois, puis gardée dans la collection `translations` |
 | GET | /api/blocklist | oui | mes commerces bloqués |
 | DELETE | /api/blocklist/:id | oui | débloquer un commerce |
 | GET | /api/offers/:id/leads | oui | prospects de l'offre avec le commerce (`?status=toContact`) |

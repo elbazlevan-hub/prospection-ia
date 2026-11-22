@@ -1,4 +1,6 @@
+import crypto from "node:crypto";
 import bcrypt from "bcrypt";
+import { sendMail } from "../lib/mailer.js";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import { emailKeyOf, ipHashOf, FREE_TRIALS_PER_IP, TRIAL_WINDOW_DAYS } from "../lib/antiAbuse.js";
@@ -79,4 +81,44 @@ export async function me(req, res) {
   const user = await User.findById(req.userId);
   if (!user) return res.status(404).json({ message: "User not found" });
   res.status(200).json({ user });
+}
+
+// ---------- mot de passe oublié ----------
+const RESET_MINUTES = 30;
+const hashToken = (token) => crypto.createHash("sha256").update(token).digest("hex");
+const appUrl = () => (process.env.CLIENT_URL || "http://localhost:5173").split(",").pop().trim().replace(/\/$/, "");
+
+const RESET_MAIL = {
+  en: (link) => ({ subject: "Reset your AIDY password", text: `Hello,\n\nClick this link to choose a new password (valid ${RESET_MINUTES} minutes):\n${link}\n\nIf you didn't ask for it, just ignore this email.` }),
+  fr: (link) => ({ subject: "Réinitialiser votre mot de passe AIDY", text: `Bonjour,\n\nCliquez sur ce lien pour choisir un nouveau mot de passe (valable ${RESET_MINUTES} minutes) :\n${link}\n\nSi vous n'avez rien demandé, ignorez simplement cet email.` }),
+  es: (link) => ({ subject: "Restablece tu contraseña de AIDY", text: `Hola,\n\nHaz clic en este enlace para elegir una nueva contraseña (válido ${RESET_MINUTES} minutos):\n${link}\n\nSi no lo pediste, ignora este email.` }),
+};
+
+// POST /api/auth/forgot-password  { email }
+// répond toujours la même chose : on ne dit jamais si l'email existe (sécurité)
+export async function forgotPassword(req, res) {
+  const user = await User.findOne({ email: req.body.email.toLowerCase() });
+  // max 1 lien par minute pour le même compte
+  const recentlySent = user?.resetTokenExpires && user.resetTokenExpires.getTime() - RESET_MINUTES * 60_000 > Date.now() - 60_000;
+  if (user && !recentlySent) {
+    const token = crypto.randomBytes(32).toString("hex"); // envoyé par email, jamais stocké en clair
+    user.resetTokenHash = hashToken(token);
+    user.resetTokenExpires = new Date(Date.now() + RESET_MINUTES * 60_000);
+    await user.save();
+    const link = `${appUrl()}/reset-password?token=${token}`;
+    const mail = (RESET_MAIL[user.language] || RESET_MAIL.en)(link);
+    await sendMail({ to: user.email, subject: mail.subject, text: mail.text });
+  }
+  res.status(200).json({ message: "If an account exists for this email, a reset link has been sent" });
+}
+
+// POST /api/auth/reset-password  { token, password }
+export async function resetPassword(req, res) {
+  const user = await User.findOne({ resetTokenHash: hashToken(req.body.token), resetTokenExpires: { $gt: new Date() } });
+  if (!user) return res.status(400).json({ message: "This link is invalid or expired. Ask for a new one." });
+  user.passwordHash = await bcrypt.hash(req.body.password, 10);
+  user.resetTokenHash = undefined;
+  user.resetTokenExpires = undefined;
+  await user.save();
+  sendToken(res, user, 200); // connecté directement avec le nouveau mot de passe
 }

@@ -16,6 +16,9 @@ const userSchema = new mongoose.Schema(
     trialGiven: { type: Boolean, default: true },                // false = compte créé sans les 5 crédits offerts
     emailKey: { type: String, index: true },                     // la vraie boîte mail (sans les +alias)
     trialIpHash: { type: String, index: true },                  // IP hachée à l'inscription (jamais en clair)
+    // mot de passe oublié : seulement l'empreinte du lien est gardée, valable 30 minutes
+    resetTokenHash: { type: String, index: true },
+    resetTokenExpires: Date,
     // fiche infos du vendeur : AIDY s'en sert pour répondre aux prospects (sans rien inventer)
     sellerProfile: {
       signature: { type: String, trim: true },     // nom affiché en bas des messages (ex. "Nyxela")
@@ -37,6 +40,8 @@ userSchema.set("toJSON", {
     delete ret.__v;
     delete ret.trialIpHash;
     delete ret.emailKey;
+    delete ret.resetTokenHash;
+    delete ret.resetTokenExpires;
     return ret;
   },
 });
