@@ -34,6 +34,7 @@ API Express + MongoDB Atlas. Le JWT est stocké dans un cookie httpOnly.
 | GET | /api/leads/:id | oui | un prospect avec son commerce et son message |
 | POST | /api/leads/:id/message | oui | réécrire le message IA d'un prospect |
 | POST | /api/leads/:id/unlock | oui | débloque un prospect (1 crédit) + message AIDY |
+| POST | /api/leads/:id/bad-phone | oui | « le numéro ne marche pas » : numéro caché, signalé (2 signalements = plus proposé à personne), crédit rendu si aucun autre contact, aucune réponse, et max 3 par mois |
 | PATCH | /api/leads/:id | oui | changer le statut, les notes ou le montant (`dealValue`) |
 | POST | /api/leads/:id/contact | oui | message (ou relance) envoyé par `channel` : programme les relances J+3 et J+7 |
 | POST | /api/leads/:id/block | oui | ne plus jamais contacter ce commerce (liste « ne plus contacter ») |

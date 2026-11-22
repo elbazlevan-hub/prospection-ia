@@ -38,14 +38,14 @@ export function nextMessageOf(lead, offer, senderName) {
 // ajoute au prospect les liens d'envoi (WhatsApp, email, Instagram, téléphone)
 // un prospect verrouillé est renvoyé masqué (sans nom, contacts ni message)
 export function withLinks(lead, offer, senderName) {
-  return publicLead(lead, offer, () => {
+  return publicLead(lead, offer, (obj) => {
     const next = nextMessageOf(lead, offer, senderName);
     const canSend = ["toContact", "contacted"].includes(lead.status) && Boolean(next.text);
     return {
       nextMessage: canSend ? next : null,
       links:
         canSend && lead.businessId
-          ? sendLinks(lead.businessId, next.text, next.subject, { includeLandlines: offer?.includeLandlines })
+          ? sendLinks(obj.businessId, next.text, next.subject, { includeLandlines: offer?.includeLandlines })
           : {},
     };
   });
@@ -329,4 +329,72 @@ export async function replySent(req, res) {
   const offer = await Offer.findById(lead.offerId);
   const user = await User.findById(req.userId);
   res.status(200).json(withLinks(lead, offer, senderNameOf(user)));
+}
+
+// POST /api/leads/:id/bad-phone  -> « le numéro ne marche pas »
+// le numéro est caché, signalé pour tout le monde, et le crédit est rendu SI :
+//  - le commerce n'a aucun autre contact (email, Instagram), sinon il reste contactable
+//  - il n'a jamais répondu (ni à moi, ni à un autre utilisateur) : une réponse prouve que le numéro marche
+//  - maximum 3 crédits rendus par mois et par compte (anti-triche)
+export const MAX_REFUNDS_PER_MONTH = 3;
+const PHONE_REPORTS_TO_CONFIRM = 2; // 2 utilisateurs différents = numéro faux pour tout le monde
+
+export async function reportBadPhone(req, res) {
+  const lead = await findMyLead(req, res);
+  if (!lead) return;
+  if (isLocked(lead)) return res.status(403).json({ message: "Unlock this lead first" });
+  const business = lead.businessId;
+  const phone = business?.phone || business?.landline;
+  if (!phone || lead.badPhoneAt) return res.status(400).json({ message: "No phone number to report" });
+
+  const [offer, user] = await Promise.all([Offer.findById(lead.offerId), User.findById(req.userId)]);
+  const now = new Date();
+
+  // signalement partagé : au 2e utilisateur, le numéro n'est plus proposé à personne
+  if (!business.phoneReports.some((r) => String(r.userId) === String(req.userId))) {
+    business.phoneReports.push({ userId: req.userId, phone, at: now });
+  }
+  const reporters = new Set(business.phoneReports.filter((r) => r.phone === phone).map((r) => String(r.userId)));
+  if (reporters.size >= PHONE_REPORTS_TO_CONFIRM) {
+    if (!business.badPhones.includes(phone)) business.badPhones.push(phone);
+    if (business.phone === phone) business.phone = undefined;
+    if (business.landline === phone) business.landline = undefined;
+  }
+  await business.save();
+
+  // remboursement : seulement si toutes les règles sont respectées
+  const hasOtherContact = Boolean(business.email || business.instagram);
+  const answered =
+    Boolean(lead.repliedAt) || lead.replies?.some((r) => r.from === "prospect") || ["interested", "client"].includes(lead.status);
+  const answeredOthers = await Lead.exists({
+    businessId: business._id,
+    userId: { $ne: req.userId },
+    $or: [{ repliedAt: { $exists: true } }, { status: { $in: ["interested", "client"] } }],
+  });
+  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const refundsThisMonth = await Lead.countDocuments({ userId: req.userId, refundedAt: { $gte: monthAgo } });
+
+  let reason = null;
+  if (user.role === "admin") reason = "unlimited";
+  else if (lead.refundedAt) reason = "alreadyRefunded";
+  else if (hasOtherContact) reason = "otherContact";
+  else if (answered || answeredOthers) reason = "answered";
+  else if (refundsThisMonth >= MAX_REFUNDS_PER_MONTH) reason = "limit";
+
+  lead.badPhoneAt = now;
+  if (!reason) {
+    lead.refundedAt = now;
+    user.credits += 1;
+    await user.save();
+  }
+  // plus aucun moyen de le contacter : il sort de la liste « à contacter »
+  if (!hasOtherContact && ["toContact", "contacted"].includes(lead.status)) lead.status = "rejected";
+  await lead.save();
+
+  res.status(200).json({
+    refunded: !reason,
+    reason,
+    credits: user.credits,
+    lead: withLinks(lead, offer, senderNameOf(user)),
+  });
 }

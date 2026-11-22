@@ -46,6 +46,8 @@ const leadSchema = new mongoose.Schema(
     lastReplyAt: Date,                             // dernière réponse du prospect
     waitingForMe: { type: Boolean, default: false }, // le prospect attend une réponse
     notes: { type: String, default: "" },
+    badPhoneAt: Date,      // l'utilisateur a signalé que le numéro ne marche pas (numéro caché pour lui)
+    refundedAt: Date,      // crédit rendu pour ce commerce
   },
   { timestamps: true }
 );

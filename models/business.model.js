@@ -11,6 +11,9 @@ const businessSchema = new mongoose.Schema(
     address: { type: String, trim: true },
     phone: { type: String, trim: true },        // portable seulement (pas de fixe), format international : +33 6..., +44 7...
     landline: { type: String, trim: true },     // numéro fixe (seulement pour appeler, si l'offre l'autorise)
+    // « numéro qui ne marche pas » : signalements des utilisateurs (1 par utilisateur)
+    phoneReports: [{ userId: mongoose.Schema.Types.ObjectId, phone: String, at: Date, _id: false }],
+    badPhones: [String],                        // numéros confirmés faux (2 signalements) : plus jamais proposés
     photoCount: { type: Number, min: 0 },       // photos sur la fiche Google (Google en renvoie 10 max)
     hasHours: Boolean,                          // horaires renseignés sur la fiche Google
     website: { type: String, trim: true },

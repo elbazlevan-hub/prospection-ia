@@ -92,6 +92,12 @@ export async function searchBusinesses(req, res) {
     }))
   );
   const businesses = await Business.find({ googlePlaceId: { $in: list.map((b) => b.googlePlaceId) } });
+  // Google peut redonner un numéro que les utilisateurs ont signalé faux : on l'enlève
+  const withBadPhone = businesses.filter((b) => b.phone && b.badPhones?.includes(b.phone));
+  if (withBadPhone.length) {
+    await Business.updateMany({ _id: { $in: withBadPhone.map((b) => b._id) } }, { $unset: { phone: "" } });
+    withBadPhone.forEach((b) => (b.phone = undefined));
+  }
 
   // 3) créer un lead par commerce pour cette offre (sans doublon grâce à l'index unique)
   //    sauf pour les commerces de ma liste "ne plus contacter"

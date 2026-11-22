@@ -53,7 +53,7 @@ export async function analyzeLeads(req, res) {
       business.landline = business.landline || landlineOf(business); // le fixe est gardé à part
       business.phone = undefined;
     }
-    if (!business.phone && contacts.phone) business.phone = contacts.phone;
+    if (!business.phone && contacts.phone && !business.badPhones?.includes(contacts.phone)) business.phone = contacts.phone;
     business.analyzedAt = new Date();
     await business.save();
   });
