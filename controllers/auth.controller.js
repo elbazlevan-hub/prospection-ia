@@ -18,7 +18,7 @@ const cookieOptions = {
 };
 
 function sendToken(res, user, status, extra = {}) {
-  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1d", algorithm: "HS256" });
   res.cookie("token", token, cookieOptions);
   res.status(status).json({ user, ...extra }); // toJSON enlève passwordHash
 }

@@ -8,7 +8,7 @@ export function auth(req, res, next) {
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] }); // une seule façon de signer acceptée
     req.userId = payload.userId; // l'utilisateur connecté
     next();
   } catch {
