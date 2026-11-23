@@ -6,7 +6,7 @@ import { PACKS, findPack } from "../lib/packs.js";
 export async function getPacks(req, res) {
   const user = await User.findById(req.userId);
   const purchases = await Purchase.find({ userId: req.userId }).sort({ createdAt: -1 });
-  res.status(200).json({ packs: PACKS, plan: user.plan, credits: user.credits, purchases });
+  res.status(200).json({ packs: PACKS, plan: user.plan, credits: user.credits, jobCredits: user.jobCredits || 0, purchases });
 }
 
 // POST /api/packs/:id/buy  -> achète un pack (paiement de DÉMONSTRATION : aucun vrai paiement)
@@ -17,13 +17,15 @@ export async function buyPack(req, res) {
 
   const user = await User.findById(req.userId);
   // la recharge est réservée à ceux qui ont déjà un pack
-  if (pack.needsPack && user.plan === "free") {
+  if (pack.needsPack && !["paid", "premium"].includes(user.plan)) {
     return res.status(400).json({ message: "The recharge is for users who already bought a pack" });
   }
 
-  user.credits += pack.credits;
+  if (pack.creditType === "job") user.jobCredits = (user.jobCredits || 0) + pack.credits; // Pack Emploi : crédits à part
+  else user.credits += pack.credits;
   if (pack.plan === "premium") user.plan = "premium";
-  else if (pack.plan === "paid" && user.plan === "free") user.plan = "paid"; // un Premium ne redescend pas en Standard
+  else if (pack.plan === "paid" && ["free", "job"].includes(user.plan)) user.plan = "paid"; // un Premium ne redescend pas en Standard
+  else if (pack.plan === "job" && user.plan === "free") user.plan = "job"; // seulement la recherche d'emploi
   await user.save();
 
   const purchase = await Purchase.create({
@@ -35,5 +37,5 @@ export async function buyPack(req, res) {
     demo: true,
   });
 
-  res.status(201).json({ purchase, plan: user.plan, credits: user.credits });
+  res.status(201).json({ purchase, plan: user.plan, credits: user.credits, jobCredits: user.jobCredits || 0 });
 }

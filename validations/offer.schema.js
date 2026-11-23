@@ -16,6 +16,7 @@ export const offerSchema = z
     targetCity: z.string().trim().min(2).optional(), // ancien format (1 ville), encore accepté
     criteria: z.array(z.enum(CRITERIA)).default([]), // facultatif : vide = tous les commerces du type
     sellingPoint: z.string().trim().max(300, "max 300 characters").optional(),
+    cvUrl: z.string().trim().url("must be a full link (https://...)").max(500).optional().or(z.literal("")),
     messageLanguage: z.string().trim().length(2, "messageLanguage = 2 letters (en, fr, es...)"),
     customCriterion: z.string().trim().min(5, "customCriterion is too short").max(300).optional(),
     price: z.number().min(0, "price must be positive").max(1_000_000).default(0),

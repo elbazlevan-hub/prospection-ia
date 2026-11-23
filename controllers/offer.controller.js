@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Offer from "../models/offer.model.js";
 import Lead from "../models/lead.model.js";
-import User, { senderNameOf } from "../models/user.model.js";
+import User, { senderNameOf, isJobOffer, creditsFor } from "../models/user.model.js";
 import { templatesIn } from "../lib/templates.js";
 import { suggestOffer } from "../lib/offerSuggester.js";
 import { unlockLeads, withLinks } from "./lead.controller.js";
@@ -18,6 +18,11 @@ function checkId(id, res) {
 
 // POST /api/offers
 export async function createOffer(req, res) {
+  // Pack Emploi seul : on ne peut créer que des recherches d'emploi
+  const user = await User.findById(req.userId);
+  if (user.plan === "job" && user.role !== "admin" && !isJobOffer(req.body)) {
+    return res.status(403).json({ message: "The Job pack is only for job searches: choose the “I'm looking for a job” template" });
+  }
   // userId vient du TOKEN, jamais du body
   const offer = await Offer.create({ ...req.body, userId: req.userId });
   res.status(201).json(offer);
@@ -59,6 +64,14 @@ export async function getOfferById(req, res) {
 // PUT /api/offers/:id  (remplacement complet, body validé par le même schéma que POST)
 export async function updateOffer(req, res) {
   if (!checkId(req.params.id, res)) return;
+
+  // une recherche d'emploi reste une recherche d'emploi (et une vente reste une vente) :
+  // sinon les crédits emploi pourraient servir à vendre
+  const current = await Offer.findOne({ _id: req.params.id, userId: req.userId });
+  if (!current) return res.status(404).json({ message: "Offer not found" });
+  if (isJobOffer(current) !== isJobOffer(req.body)) {
+    return res.status(400).json({ message: "A job search can't become a sales offer (or the opposite): create a new offer" });
+  }
 
   const offer = await Offer.findOneAndUpdate(
     { _id: req.params.id, userId: req.userId }, // l'id ET le propriétaire
@@ -102,7 +115,7 @@ export async function unlockBest(req, res) {
   if (!offer) return res.status(404).json({ message: "Offer not found" });
 
   const user = await User.findById(req.userId);
-  if (user.role !== "admin" && user.credits < 1) {
+  if (creditsFor(user, offer) < 1) {
     return res.status(402).json({ message: "No credits left: buy a pack to unlock more leads", credits: 0 });
   }
 

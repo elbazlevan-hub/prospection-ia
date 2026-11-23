@@ -202,3 +202,22 @@ export async function getInbox(req, res) {
     })),
   });
 }
+
+// GET /api/dashboard/onboarding  -> les 5 étapes « Bien démarrer » (faites ou pas)
+export async function getOnboarding(req, res) {
+  const user = await User.findById(req.userId);
+  const mine = { userId: req.userId };
+  const [offer, unlocked, contacted, replied] = await Promise.all([
+    Offer.exists(mine),
+    Lead.exists({ ...mine, unlocked: { $ne: false } }),
+    Lead.exists({ ...mine, contactedAt: { $exists: true } }),
+    Lead.exists({ ...mine, "replies.0": { $exists: true } }),
+  ]);
+  res.status(200).json({
+    profile: Boolean(user.sellerProfile?.signature),
+    offer: Boolean(offer),
+    unlocked: Boolean(unlocked),
+    contacted: Boolean(contacted),
+    replied: Boolean(replied),
+  });
+}

@@ -36,6 +36,10 @@ export async function searchBusinesses(req, res) {
 
   // essai gratuit : 1 seule recherche, 1 ville et 1 catégorie
   const user = await User.findById(req.userId);
+  // Pack Emploi seul : recherches illimitées, mais seulement pour une offre « Je cherche un emploi »
+  if (user.plan === "job" && user.role !== "admin" && offer.serviceType !== "job") {
+    return res.status(403).json({ message: "The Job pack is only for job searches" });
+  }
   const trial = user.plan === "free" && user.role !== "admin";
   if (trial && user.freeSearchUsed) {
     return res.status(402).json({ message: "Free trial: you already used your free search. Buy a pack to search again." });

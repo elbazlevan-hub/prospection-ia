@@ -25,6 +25,7 @@ const offerSchema = new mongoose.Schema(
     targetCity: { type: String, trim: true },                           // ancien champ (1 seule ville), gardé pour les anciennes offres
     criteria: { type: [String], enum: CRITERIA, default: [] },          // problèmes recherchés (vide = tous les commerces du type)
     sellingPoint: { type: String, trim: true },                         // l'avantage du vendeur, ex. "moins cher, en gros, livré dans toute la France"
+    cvUrl: { type: String, trim: true },                                // recherche d'emploi (serviceType "job") : lien vers le CV
     messageLanguage: { type: String, required: true, lowercase: true }, // en, fr, es...
     customCriterion: { type: String, trim: true }, // critère libre jugé par l'IA, ex. "restaurants qui semblent avoir besoin d'un service de nettoyage"
     price: { type: Number, min: 0, default: 0 },                        // prix du service (paiement unique)

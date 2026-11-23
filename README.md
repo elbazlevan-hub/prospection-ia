@@ -41,12 +41,13 @@ API Express + MongoDB Atlas. Le JWT est stocké dans un cookie httpOnly.
 | GET | /api/dashboard/today | oui | plan du jour : relances + prospects à contacter, limité par `dailyLimit` (`?offerId=`) |
 | GET | /api/dashboard/stats | oui | statuts, argent gagné / possible, taux de réponse par canal et par problème (`?offerId=`) |
 | GET | /api/dashboard/inbox | oui | « À répondre » : prospects qui ont répondu, classés par priorité (`?offerId=`) |
+| GET | /api/dashboard/onboarding | oui | les 5 étapes « Bien démarrer » déjà faites (fiche, offre, déblocage, envoi, réponse) |
 | POST | /api/leads/:id/reply | oui (Premium) | coller la réponse du prospect : AIDY la classe (intéressé, question, rendez-vous, pas intéressé, STOP), met à jour le statut et écrit la réponse |
 | POST | /api/leads/:id/reply/sent | oui | la réponse a été envoyée (ajoutée à la conversation) |
 | GET | /api/profile | oui | ma fiche infos (prix, délais, liens…) |
 | PUT | /api/profile | oui | modifier ma fiche infos |
 | GET | /api/packs | oui | les packs + mes crédits + mon historique d'achats |
-| POST | /api/packs/:id/buy | oui | acheter un pack `standard`, `premium` ou `recharge` (paiement de démonstration) |
+| POST | /api/packs/:id/buy | oui | acheter un pack `standard`, `premium`, `recharge` ou `job` (paiement de démonstration) |
 | POST | /api/i18n/:lang | oui | l'interface traduite dans une langue (`de`, `ar`, `pt-BR`…) — traduite par l'IA la 1re fois, puis gardée dans la collection `translations` |
 | GET | /api/blocklist | oui | mes commerces bloqués |
 | DELETE | /api/blocklist/:id | oui | débloquer un commerce |
@@ -100,8 +101,10 @@ Par défaut, seuls les portables sont gardés (WhatsApp possible). Avec `include
 | Standard | 29 $ | 60 | illimitées | non |
 | Premium | 49 $ | 120 | illimitées | oui |
 | Recharge | 19 $ | 30 | illimitées | garde la formule actuelle |
+| Emploi | 25 $ | 50 (crédits emploi) | illimitées, seulement pour « Je cherche un emploi » | formule `job` |
 
-- La **Recharge** n'est possible qu'après un premier pack (sinon **400**). Un Premium qui achète une recharge reste Premium.
+- Le **Pack Emploi** donne des `jobCredits` séparés : ils ne débloquent que des offres « Je cherche un emploi » (`serviceType: "job"`). Un compte qui n'a que ce pack ne peut créer et chercher que des offres emploi (**403**), et une offre emploi ne peut pas devenir une offre de vente (**400**).
+- La **Recharge** n'est possible qu'après un pack Standard ou Premium (sinon **400**). Un Premium qui achète une recharge reste Premium.
 - Chaque achat est enregistré dans la collection `purchases` (historique affiché dans l'app).
 - Le paiement est pour l'instant **de démonstration** (`demo: true`) : les crédits sont ajoutés sans carte bancaire. Le vrai paiement (Stripe) viendra ensuite : il appellera la même logique une fois le paiement validé.
 

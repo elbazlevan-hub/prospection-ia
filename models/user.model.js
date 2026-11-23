@@ -9,7 +9,9 @@ const userSchema = new mongoose.Schema(
     language: { type: String, default: "en", lowercase: true },  // langue de l'interface
     country: { type: String, uppercase: true },                  // code ISO : US, FR, GB...
     // essai gratuit puis packs payants (paiement unique)
-    plan: { type: String, enum: ["free", "paid", "premium"], default: "free" }, // premium = assistant de réponse AIDY
+    plan: { type: String, enum: ["free", "job", "paid", "premium"], default: "free" }, // job = seulement le Pack Emploi ; premium = assistant de réponse AIDY
+    // crédits du Pack Emploi : utilisables SEULEMENT pour une recherche d'emploi (jamais pour vendre)
+    jobCredits: { type: Number, min: 0, default: 0 },
     credits: { type: Number, min: 0, default: 5 },              // prospects qu'il peut encore débloquer (5 offerts)
     freeSearchUsed: { type: Boolean, default: false },           // essai gratuit : 1 seule recherche
     // anti-abus : un essai gratuit par boîte mail et 2 max par connexion internet (voir lib/antiAbuse.js)
@@ -51,6 +53,27 @@ userSchema.set("toJSON", {
 // le nom qui signe les messages : la signature de la fiche infos, sinon le nom du compte
 export function senderNameOf(user) {
   return user?.sellerProfile?.signature || user?.name || "";
+}
+
+// une offre de recherche d'emploi (modèle « Je cherche un emploi »)
+export const isJobOffer = (offer) => offer?.serviceType === "job";
+
+// crédits utilisables pour cette offre : emploi = crédits emploi + crédits normaux ; vente = crédits normaux seulement
+export function creditsFor(user, offer) {
+  if (user.role === "admin") return Infinity;
+  return isJobOffer(offer) ? (user.jobCredits || 0) + user.credits : user.credits;
+}
+
+// dépense n crédits pour cette offre (emploi : les crédits emploi d'abord)
+export function spendCredits(user, offer, n) {
+  if (user.role === "admin") return;
+  let left = n;
+  if (isJobOffer(offer)) {
+    const fromJob = Math.min(left, user.jobCredits || 0);
+    user.jobCredits = (user.jobCredits || 0) - fromJob;
+    left -= fromJob;
+  }
+  user.credits -= left;
 }
 
 export const isPremium = (user) => user?.plan === "premium" || user?.role === "admin";

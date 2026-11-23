@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Lead from "../models/lead.model.js";
 import Offer from "../models/offer.model.js";
-import User, { senderNameOf, isPremium } from "../models/user.model.js";
+import User, { senderNameOf, isPremium, isJobOffer, creditsFor, spendCredits } from "../models/user.model.js";
 import { analyzeReply } from "../lib/replyAssistant.js";
 import Blocklist, { blockedSetOf, isBlocked } from "../models/blocklist.model.js";
 import { sendLinks, followUpMessage, nextFollowUp, startOfToday, MAX_FOLLOW_UPS } from "../lib/outreach.js";
@@ -28,7 +28,7 @@ export function nextMessageOf(lead, offer, senderName) {
   if (lead.status === "contacted") {
     return {
       kind: "followUp",
-      text: followUpMessage(offer?.messageLanguage, senderName),
+      text: followUpMessage(offer?.messageLanguage, senderName, offer?.serviceType === "job"),
       subject: lead.emailSubject ? `Re: ${lead.emailSubject}` : "",
     };
   }
@@ -47,6 +47,11 @@ export function withLinks(lead, offer, senderName) {
         canSend && lead.businessId
           ? sendLinks(obj.businessId, next.text, next.subject, { includeLandlines: offer?.includeLandlines })
           : {},
+      // la réponse proposée par AIDY : boutons WhatsApp / SMS / email prêts, même après avoir rechargé la page
+      replyLinks:
+        lead.suggestedReply && obj.businessId
+          ? sendLinks(obj.businessId, lead.suggestedReply, lead.emailSubject ? `Re: ${lead.emailSubject}` : "", { includeLandlines: offer?.includeLandlines })
+          : {},
     };
   });
 }
@@ -56,7 +61,7 @@ export function withLinks(lead, offer, senderName) {
 export async function unlockLeads(leads, offer, user, writeMessages = true) {
   const toUnlock = leads.filter((l) => isLocked(l) && canContact(l.businessId, offer)); // jamais de crédit pour un commerce injoignable
   const free = user.role === "admin";
-  const count = free ? toUnlock.length : Math.min(toUnlock.length, user.credits);
+  const count = free ? toUnlock.length : Math.min(toUnlock.length, creditsFor(user, offer));
   const chosen = toUnlock.slice(0, count);
   if (chosen.length === 0) return { unlocked: [], credits: user.credits, messageErrors: 0 };
 
@@ -67,7 +72,7 @@ export async function unlockLeads(leads, offer, user, writeMessages = true) {
     await lead.save();
   }
   if (!free) {
-    user.credits -= chosen.length;
+    spendCredits(user, offer, chosen.length); // Pack Emploi : seulement pour une offre emploi
     await user.save();
   }
 
@@ -93,7 +98,7 @@ export async function unlockLead(req, res) {
   const user = await User.findById(req.userId);
   if (!isLocked(lead)) return res.status(200).json({ credits: user.credits, lead: withLinks(lead, offer, senderNameOf(user)) });
 
-  if (user.role !== "admin" && user.credits < 1) {
+  if (creditsFor(user, offer) < 1) {
     return res.status(402).json({ message: "No credits left: buy a pack to unlock more leads", credits: 0 });
   }
   // on débloque après l'analyse : sinon on ne sait pas encore quel est son problème
@@ -111,6 +116,12 @@ export async function unlockLead(req, res) {
   });
 }
 
+// un crédit rendu retourne d'où il vient : crédits emploi pour une offre emploi, sinon crédits normaux
+function refundCredit(user, offer) {
+  if (isJobOffer(offer)) user.jobCredits = (user.jobCredits || 0) + 1;
+  else user.credits += 1;
+}
+
 // GET /api/leads/:id  -> un prospect avec son commerce, son message et les liens d'envoi
 export async function getLead(req, res) {
   const lead = await findMyLead(req, res);
@@ -123,7 +134,7 @@ export async function getLead(req, res) {
     lead.status = "rejected";
     if (lead.unlockedAt && !lead.refundedAt && user.role !== "admin") {
       lead.refundedAt = new Date();
-      user.credits += 1;
+      refundCredit(user, offer);
       await user.save();
     }
     await lead.save();
@@ -396,7 +407,7 @@ export async function reportBadPhone(req, res) {
   lead.badPhoneAt = now;
   if (!reason) {
     lead.refundedAt = now;
-    user.credits += 1;
+    refundCredit(user, offer);
     await user.save();
   }
   // plus aucun moyen de le contacter : il sort de la liste « à contacter »

@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 const purchaseSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    packId: { type: String, enum: ["standard", "premium", "recharge"], required: true },
+    packId: { type: String, enum: ["standard", "premium", "recharge", "job"], required: true },
     credits: { type: Number, min: 0, required: true },
     price: { type: Number, min: 0, required: true },
     currency: { type: String, required: true },
