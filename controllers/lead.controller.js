@@ -17,6 +17,23 @@ function checkId(id, res) {
   return true;
 }
 
+// « empreinte » d'un commerce : Google a parfois 2 fiches pour le même commerce (2 googlePlaceId différents).
+// Même portable, même email, même Instagram, ou même nom + même adresse = le même commerce.
+function shopKeysOf(b) {
+  if (!b) return [];
+  const keys = [];
+  const digits = String(b.phone || "").replace(/\D/g, "");
+  if (digits.length >= 8) keys.push("tel:" + digits.slice(-9));
+  if (b.email) keys.push("mail:" + b.email.toLowerCase());
+  if (b.instagram) keys.push("ig:" + b.instagram.toLowerCase().replace(/\/+$/, ""));
+  if (b.name && b.address) keys.push("addr:" + `${b.name}|${b.address}`.toLowerCase().replace(/\s+/g, " ").trim());
+  return keys;
+}
+const sameShop = (a, b) => {
+  const keys = new Set(shopKeysOf(a));
+  return shopKeysOf(b).some((k) => keys.has(k));
+};
+
 async function findMyLead(req, res) {
   if (!checkId(req.params.id, res)) return null;
   const lead = await Lead.findOne({ _id: req.params.id, userId: req.userId }).populate("businessId");
@@ -192,6 +209,16 @@ export async function updateLead(req, res) {
   }
 
   await lead.save();
+
+  // « pas intéressé » : ses doublons dans la même offre (2e fiche Google du même commerce) sont refusés aussi
+  if (status === "rejected") {
+    const others = await Lead.find({ userId: req.userId, offerId: lead.offerId, _id: { $ne: lead._id }, status: { $ne: "rejected" } }).populate("businessId");
+    const twins = others.filter((l) => sameShop(l.businessId, lead.businessId));
+    if (twins.length) {
+      await Lead.updateMany({ _id: { $in: twins.map((l) => l._id) } }, { $set: { status: "rejected", waitingForMe: false }, $unset: { followUpAt: "" } });
+    }
+  }
+
   const user = await User.findById(req.userId);
   res.status(200).json(withLinks(lead, offer, senderNameOf(user)));
 }
@@ -450,13 +477,20 @@ export async function searchLeads(req, res) {
     businessId: { $in: businesses.map((b) => b._id) },
     unlocked: { $ne: false }, // jamais les commerces verrouillés (pas payés)
   })
-    .populate("businessId", "name category city")
+    .populate("businessId", "name category city phone email instagram address")
     .populate("offerId", "title")
-    .sort({ lastContactAt: -1, updatedAt: -1 })
-    .limit(20);
+    .sort({ lastContactAt: -1, updatedAt: -1 }) // le plus récemment contacté / modifié d'abord
+    .limit(50);
+
+  // même commerce en double (2 fiches Google) : on garde seulement le plus récent, dans chaque offre
+  const kept = [];
+  for (const l of leads) {
+    const twin = kept.some((k) => String(k.offerId?._id) === String(l.offerId?._id) && sameShop(k.businessId, l.businessId));
+    if (!twin) kept.push(l);
+  }
 
   res.status(200).json(
-    leads.map((l) => ({
+    kept.slice(0, 20).map((l) => ({
       _id: l._id,
       name: l.businessId?.name,
       category: l.businessId?.category,
