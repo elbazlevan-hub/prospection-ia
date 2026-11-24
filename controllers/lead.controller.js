@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Lead from "../models/lead.model.js";
+import Business from "../models/business.model.js";
 import Offer from "../models/offer.model.js";
 import User, { senderNameOf, isPremium, isJobOffer, creditsFor, spendCredits } from "../models/user.model.js";
 import { analyzeReply } from "../lib/replyAssistant.js";
@@ -420,4 +421,46 @@ export async function reportBadPhone(req, res) {
     credits: user.credits,
     lead: withLinks(lead, offer, senderNameOf(user)),
   });
+}
+
+// GET /api/leads/search?q=bayside  -> retrouver vite un commerce débloqué (nom, téléphone, email, Instagram)
+// dans toutes mes offres, par exemple pour le passer en « Refusé » quand il répond qu'il n'est pas intéressé
+export async function searchLeads(req, res) {
+  const q = String(req.query.q || "").trim().slice(0, 60);
+  if (q.length < 2) return res.status(200).json([]);
+
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // le texte tapé est cherché tel quel (pas une regex)
+  const or = [
+    { name: { $regex: escaped, $options: "i" } },
+    { email: { $regex: escaped, $options: "i" } },
+    { instagram: { $regex: escaped, $options: "i" } },
+  ];
+  // un numéro tapé avec ou sans espaces / tirets : "050 123" trouve "+972 50-123-4567"
+  const digits = q.replace(/\D/g, "");
+  if (digits.length >= 4) {
+    const loose = digits.replace(/^0/, "").split("").join("\\D*");
+    or.push({ phone: { $regex: loose } }, { landline: { $regex: loose } });
+  }
+
+  const businesses = await Business.find({ $or: or }).select("_id").limit(500);
+  const leads = await Lead.find({
+    userId: req.userId, // seulement MES prospects
+    businessId: { $in: businesses.map((b) => b._id) },
+    unlocked: { $ne: false }, // jamais les commerces verrouillés (pas payés)
+  })
+    .populate("businessId", "name category city")
+    .populate("offerId", "title")
+    .sort({ lastContactAt: -1, updatedAt: -1 })
+    .limit(20);
+
+  res.status(200).json(
+    leads.map((l) => ({
+      _id: l._id,
+      name: l.businessId?.name,
+      category: l.businessId?.category,
+      city: l.businessId?.city,
+      status: l.status,
+      offerTitle: l.offerId?.title,
+    }))
+  );
 }

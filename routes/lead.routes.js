@@ -2,13 +2,14 @@ import { Router } from "express";
 import { auth } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
 import { updateLeadSchema, contactLeadSchema, blockLeadSchema, replySchema, replySentSchema } from "../validations/lead.schema.js";
-import { getLead, updateLead, contactLead, blockLead, unlockLead, replyToLead, replySent, reportBadPhone } from "../controllers/lead.controller.js";
+import { getLead, updateLead, contactLead, blockLead, unlockLead, replyToLead, replySent, reportBadPhone, searchLeads } from "../controllers/lead.controller.js";
 import { regenerateLeadMessage } from "../controllers/message.controller.js";
 
 const router = Router();
 
 router.use(auth); // toutes les routes des prospects demandent d'être connecté
 
+router.get("/search", searchLeads);                                    // ?q= : retrouver un commerce débloqué (nom, tél., email)
 router.get("/:id", getLead);                                          // prospect + message + liens d'envoi
 router.patch("/:id", validate(updateLeadSchema), updateLead);         // statut, notes, montant
 router.post("/:id/contact", validate(contactLeadSchema), contactLead); // message ou relance envoyé
