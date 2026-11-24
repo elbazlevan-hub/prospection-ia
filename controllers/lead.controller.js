@@ -295,6 +295,7 @@ export async function replyToLead(req, res) {
     sellerProfile: user.toObject().sellerProfile || {},
     signature: senderNameOf(user),
     prospectText: req.body.text,
+    sellerLanguage: req.body.lang || user.language,
   });
 
   const now = new Date();

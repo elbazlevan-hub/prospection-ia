@@ -23,6 +23,7 @@ export const blockLeadSchema = z.object({
 // POST /api/leads/:id/reply : coller la réponse du prospect
 export const replySchema = z.object({
   text: z.string().trim().min(1, "paste the business's reply").max(3000),
+  lang: z.string().trim().max(10).optional(), // langue de l'app : les conseils d'AIDY sont écrits dans cette langue
 });
 
 // POST /api/leads/:id/reply/sent : la réponse d'AIDY (éventuellement modifiée) a été envoyée
