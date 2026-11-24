@@ -423,7 +423,7 @@ export async function reportBadPhone(req, res) {
   });
 }
 
-// GET /api/leads/search?q=bayside  -> retrouver vite un commerce débloqué (nom, téléphone, email, Instagram)
+// GET /api/leads/search?q=bayside&offerId=...  -> retrouver vite un commerce débloqué (nom, téléphone, email, Instagram)
 // dans toutes mes offres, par exemple pour le passer en « Refusé » quand il répond qu'il n'est pas intéressé
 export async function searchLeads(req, res) {
   const q = String(req.query.q || "").trim().slice(0, 60);
@@ -445,6 +445,7 @@ export async function searchLeads(req, res) {
   const businesses = await Business.find({ $or: or }).select("_id").limit(500);
   const leads = await Lead.find({
     userId: req.userId, // seulement MES prospects
+    ...(mongoose.isValidObjectId(req.query.offerId) && { offerId: req.query.offerId }), // dans cette offre seulement
     businessId: { $in: businesses.map((b) => b._id) },
     unlocked: { $ne: false }, // jamais les commerces verrouillés (pas payés)
   })
