@@ -8,6 +8,9 @@ import { isMobile, landlineOf } from "../lib/phone.js";
 import { canContact, isLocked } from "../lib/locking.js";
 
 const CACHE_DAYS = 7;       // un commerce analysé il y a moins de 7 jours n'est pas ré-analysé
+// date de la dernière amélioration de l'analyse : les commerces analysés avant sont ré-analysés
+// (ex. 24/11 : Ontopo, Tabit et d'autres outils de réservation de table sont maintenant reconnus)
+const ANALYZER_UPDATED = new Date("2026-11-24T00:00:00Z").getTime();
 const PARALLEL = 6;         // nombre de sites visités en même temps
 
 // exécute fn sur chaque élément, PARALLEL à la fois
@@ -41,7 +44,7 @@ export async function analyzeLeads(req, res) {
   const limit = Date.now() - CACHE_DAYS * 24 * 60 * 60 * 1000;
   const toAnalyze = leads
     .map((l) => l.businessId)
-    .filter((b) => b && (req.query.force === "true" || !b.analyzedAt || b.analyzedAt.getTime() < limit));
+    .filter((b) => b && (req.query.force === "true" || !b.analyzedAt || b.analyzedAt.getTime() < Math.max(limit, ANALYZER_UPDATED)));
 
   await runInParallel(toAnalyze, async (business) => {
     const { contacts = {}, ...analysis } = await analyzeWebsite(business.website, business.country);
